@@ -1,0 +1,1069 @@
+<!DOCTYPE html>
+<html lang="fr">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+<title>PXL.IMAGE.FORMATION — Catalogue Interactif</title>
+<link href="https://fonts.googleapis.com/css2?family=Poppins:wght@300;400;500;600;700;800;900&family=Share+Tech+Mono&display=swap" rel="stylesheet">
+<style>
+* { box-sizing: border-box; margin: 0; padding: 0; -webkit-tap-highlight-color: transparent; }
+
+:root {
+  --red: #cd1719;
+  --dark: #282727;
+  --white: #ffffff;
+  --panel-w: min(390px, 100vw);
+  --panel-h: calc(var(--panel-w) * 16 / 9);
+}
+
+html, body {
+  height: 100%;
+  background: #111;
+  font-family: 'Poppins', sans-serif;
+  overflow: hidden;
+  cursor: none;
+}
+
+/* CUSTOM CURSOR */
+.cursor {
+  position: fixed; width: 12px; height: 12px;
+  border: 1.5px solid var(--red); border-radius: 50%;
+  pointer-events: none; z-index: 9999;
+  transform: translate(-50%, -50%);
+  transition: transform 0.1s, width 0.2s, height 0.2s, background 0.2s;
+}
+.cursor.hover { width: 28px; height: 28px; background: rgba(205,23,25,.15); }
+
+/* WRAPPER */
+.catalogue-wrapper {
+  position: fixed; inset: 0;
+  display: flex; align-items: center; justify-content: center;
+}
+
+/* DEVICE FRAME */
+.device {
+  width: var(--panel-w);
+  height: var(--panel-h);
+  position: relative;
+  overflow: hidden;
+  border-radius: 20px;
+  box-shadow: 0 0 0 1px rgba(205,23,25,.2), 0 40px 80px rgba(0,0,0,.8), 0 0 60px rgba(205,23,25,.08);
+}
+
+/* PANELS TRACK */
+.panels-track {
+  display: flex;
+  width: calc(var(--panel-w) * 5);
+  height: 100%;
+  transition: transform 0.5s cubic-bezier(0.77,0,0.18,1);
+}
+
+.panel {
+  width: var(--panel-w);
+  height: 100%;
+  position: relative;
+  overflow: hidden;
+  flex-shrink: 0;
+  background: var(--dark);
+}
+
+/* NOISE OVERLAY */
+.panel::before {
+  content: '';
+  position: absolute; inset: 0;
+  background-image: url("data:image/svg+xml,%3Csvg viewBox='0 0 256 256' xmlns='http://www.w3.org/2000/svg'%3E%3Cfilter id='n'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='0.9' numOctaves='4' stitchTiles='stitch'/%3E%3C/filter%3E%3Crect width='100%25' height='100%25' filter='url(%23n)' opacity='0.03'/%3E%3C/svg%3E");
+  pointer-events: none; z-index: 1;
+}
+
+/* SCAN LINES */
+.panel::after {
+  content: '';
+  position: absolute; inset: 0;
+  background: repeating-linear-gradient(0deg, transparent, transparent 2px, rgba(0,0,0,.03) 2px, rgba(0,0,0,.03) 4px);
+  pointer-events: none; z-index: 1;
+}
+
+/* PROGRESS BAR */
+.progress-bar {
+  position: absolute; bottom: 0; left: 0; right: 0;
+  height: 3px; background: rgba(255,255,255,.06); z-index: 100;
+  display: flex;
+}
+.progress-segment {
+  flex: 1; height: 100%;
+  background: rgba(255,255,255,.08);
+  position: relative; cursor: pointer;
+}
+.progress-segment::after {
+  content: ''; position: absolute; inset: 0;
+  background: var(--red);
+  transform: scaleX(0); transform-origin: left;
+  transition: transform 0.4s ease;
+  box-shadow: 0 0 8px var(--red);
+}
+.progress-segment.active::after { transform: scaleX(1); }
+.progress-segment.done::after { transform: scaleX(1); background: rgba(205,23,25,.4); box-shadow: none; }
+
+/* NAV ARROWS */
+.nav-arrow {
+  position: absolute; top: 50%; z-index: 50;
+  width: 36px; height: 36px; border-radius: 50%;
+  background: rgba(205,23,25,.15);
+  border: 1px solid rgba(205,23,25,.3);
+  display: flex; align-items: center; justify-content: center;
+  cursor: pointer; transform: translateY(-50%);
+  transition: all 0.2s; backdrop-filter: blur(4px);
+  color: var(--red); font-size: 14px; font-weight: 700;
+}
+.nav-arrow:hover { background: rgba(205,23,25,.3); transform: translateY(-50%) scale(1.1); }
+.nav-prev { left: 12px; }
+.nav-next { right: 12px; }
+.nav-arrow.hidden { opacity: 0; pointer-events: none; }
+
+/* PANEL NUMBER */
+.panel-num {
+  position: absolute; top: 20px; right: 20px;
+  font-size: 10px; font-weight: 600; color: rgba(255,255,255,.3);
+  letter-spacing: .15em; z-index: 10;
+  font-family: 'Share Tech Mono', monospace;
+}
+
+/* LOGO */
+.pxl-logo {
+  position: absolute; top: 20px; left: 20px;
+  font-size: 10px; font-weight: 700; color: rgba(255,255,255,.4);
+  letter-spacing: .22em; text-transform: uppercase; z-index: 10;
+  display: flex; align-items: center; gap: 6px;
+}
+.logo-bar { width: 2px; height: 12px; background: var(--red); border-radius: 1px; }
+
+/* ═══════════════════════ */
+/* PANEL 1 — COVER        */
+/* ═══════════════════════ */
+.p1-bg {
+  position: absolute; inset: 0;
+  background: radial-gradient(ellipse at 50% 40%, rgba(205,23,25,.12) 0%, transparent 70%);
+}
+.p1-grid {
+  position: absolute; inset: 0;
+  background-image:
+    linear-gradient(rgba(205,23,25,.05) 1px, transparent 1px),
+    linear-gradient(90deg, rgba(205,23,25,.05) 1px, transparent 1px);
+  background-size: 40px 40px;
+}
+
+/* ROCKET */
+.rocket-container {
+  position: absolute; left: 50%; top: 30%;
+  transform: translate(-50%, -50%);
+  animation: rocket-float 3s ease-in-out infinite;
+}
+@keyframes rocket-float {
+  0%, 100% { transform: translate(-50%, -50%) translateY(0); }
+  50% { transform: translate(-50%, -50%) translateY(-12px); }
+}
+.rocket-svg { width: 120px; filter: drop-shadow(0 0 20px rgba(205,23,25,.5)); }
+
+/* PULSE RINGS */
+.pulse-ring {
+  position: absolute; left: 50%; top: 30%;
+  transform: translate(-50%, -50%);
+  width: 160px; height: 160px; border-radius: 50%;
+  border: 1px solid rgba(205,23,25,.3);
+  animation: pulse-out 2.5s ease-out infinite;
+}
+.pulse-ring:nth-child(2) { animation-delay: 0.8s; }
+.pulse-ring:nth-child(3) { animation-delay: 1.6s; }
+@keyframes pulse-out {
+  0% { transform: translate(-50%,-50%) scale(0.8); opacity: .6; }
+  100% { transform: translate(-50%,-50%) scale(2.2); opacity: 0; }
+}
+
+.p1-content {
+  position: absolute; bottom: 0; left: 0; right: 0;
+  padding: 0 28px 60px;
+}
+.p1-tag {
+  display: inline-block; padding: 4px 12px;
+  background: rgba(205,23,25,.15);
+  border: 1px solid rgba(205,23,25,.3);
+  border-radius: 2px; font-size: 9px; font-weight: 700;
+  color: var(--red); letter-spacing: .2em; text-transform: uppercase;
+  margin-bottom: 12px;
+  font-family: 'Share Tech Mono', monospace;
+}
+.p1-title {
+  font-size: 38px; font-weight: 900; color: var(--white);
+  line-height: 1.05; margin-bottom: 8px; letter-spacing: -.5px;
+}
+.p1-title span { color: var(--red); }
+.p1-sub {
+  font-size: 11px; font-weight: 400; color: rgba(255,255,255,.45);
+  line-height: 1.6; margin-bottom: 20px; letter-spacing: .03em;
+}
+.p1-specs {
+  display: flex; gap: 16px; margin-bottom: 24px;
+}
+.p1-spec {
+  font-family: 'Share Tech Mono', monospace;
+  font-size: 9px; color: rgba(255,255,255,.3);
+  letter-spacing: .08em;
+}
+.p1-spec span { color: var(--red); }
+.scroll-indicator {
+  display: flex; flex-direction: column; align-items: center; gap: 4px;
+}
+.scroll-text { font-size: 9px; color: rgba(255,255,255,.3); letter-spacing: .15em; text-transform: uppercase; }
+.scroll-arrow { color: var(--red); animation: bounce-x 1.5s ease-in-out infinite; font-size: 14px; }
+@keyframes bounce-x {
+  0%, 100% { transform: translateX(0); }
+  50% { transform: translateX(6px); }
+}
+
+/* ═══════════════════════════ */
+/* PANEL 2 — UNREAL ENGINE    */
+/* ═══════════════════════════ */
+.p2-scene {
+  position: absolute; inset: 0;
+  background: linear-gradient(160deg, #1a0f0f 0%, var(--dark) 60%);
+  overflow: hidden;
+}
+.p2-arch {
+  position: absolute; inset: 0;
+  background:
+    linear-gradient(to bottom, transparent 30%, rgba(40,39,39,.95) 80%),
+    linear-gradient(135deg, rgba(205,23,25,.04) 0%, transparent 50%);
+}
+/* Wireframe architectural lines */
+.arch-lines {
+  position: absolute; top: 5%; left: 0; right: 0; height: 55%;
+  overflow: hidden;
+}
+.arch-line {
+  position: absolute; background: rgba(205,23,25,.15);
+  transform-origin: bottom center;
+}
+.al1 { width: 1px; height: 80%; left: 20%; bottom: 0; transform: perspective(200px) rotateX(10deg); }
+.al2 { width: 1px; height: 90%; left: 35%; bottom: 0; }
+.al3 { width: 1px; height: 85%; left: 50%; bottom: 0; }
+.al4 { width: 1px; height: 90%; left: 65%; bottom: 0; }
+.al5 { width: 1px; height: 80%; left: 80%; bottom: 0; }
+.al-h1 { width: 100%; height: 1px; top: 20%; }
+.al-h2 { width: 100%; height: 1px; top: 40%; }
+.al-h3 { width: 100%; height: 1px; top: 60%; }
+/* Glowing floor */
+.arch-floor {
+  position: absolute; bottom: 42%; left: 0; right: 0;
+  height: 1px; background: linear-gradient(90deg, transparent, rgba(205,23,25,.4), transparent);
+  box-shadow: 0 0 20px rgba(205,23,25,.2);
+}
+
+.p2-content {
+  position: absolute; bottom: 0; left: 0; right: 0;
+  padding: 0 24px 56px;
+}
+.formation-badge {
+  display: inline-flex; align-items: center; gap: 6px;
+  background: var(--red); border-radius: 2px;
+  padding: 4px 10px; margin-bottom: 14px;
+  font-size: 9px; font-weight: 700; color: var(--white);
+  letter-spacing: .18em; text-transform: uppercase;
+}
+.p2-title { font-size: 26px; font-weight: 900; color: var(--white); line-height: 1.1; margin-bottom: 6px; }
+.p2-title em { color: var(--red); font-style: normal; }
+.p2-level {
+  font-family: 'Share Tech Mono', monospace;
+  font-size: 9px; color: rgba(255,255,255,.35); letter-spacing: .1em;
+  margin-bottom: 16px;
+}
+.skills-grid { display: flex; flex-direction: column; gap: 6px; margin-bottom: 16px; }
+.skill-tag {
+  display: flex; align-items: center; gap: 8px;
+  padding: 7px 12px;
+  background: rgba(255,255,255,.04);
+  border: 0.5px solid rgba(255,255,255,.08);
+  border-radius: 4px; cursor: pointer;
+  transition: all 0.2s; position: relative;
+}
+.skill-tag:hover, .skill-tag.active {
+  background: rgba(205,23,25,.1);
+  border-color: rgba(205,23,25,.3);
+}
+.skill-dot { width: 5px; height: 5px; border-radius: 50%; background: var(--red); flex-shrink: 0; }
+.skill-name { font-size: 11px; font-weight: 600; color: rgba(255,255,255,.8); flex: 1; }
+.skill-arrow { font-size: 9px; color: var(--red); opacity: 0; transition: opacity 0.2s; }
+.skill-tag:hover .skill-arrow { opacity: 1; }
+
+/* TOOLTIP */
+.tooltip {
+  position: absolute; left: 0; bottom: calc(100% + 6px);
+  background: rgba(20,10,10,.95);
+  border: 1px solid rgba(205,23,25,.3);
+  border-radius: 6px; padding: 10px 14px;
+  font-size: 10px; color: rgba(255,255,255,.8);
+  line-height: 1.5; width: 240px; z-index: 50;
+  backdrop-filter: blur(8px);
+  display: none; pointer-events: none;
+}
+.tooltip::before {
+  content: ''; position: absolute; bottom: -5px; left: 20px;
+  width: 8px; height: 8px; background: rgba(20,10,10,.95);
+  border-right: 1px solid rgba(205,23,25,.3);
+  border-bottom: 1px solid rgba(205,23,25,.3);
+  transform: rotate(45deg);
+}
+.skill-tag:hover .tooltip, .skill-tag.active .tooltip { display: block; }
+
+/* ═══════════════════════ */
+/* PANEL 3 — BLENDER 3D   */
+/* ═══════════════════════ */
+.p3-bg {
+  position: absolute; inset: 0;
+  background: linear-gradient(180deg, #1a1212 0%, var(--dark) 100%);
+}
+/* Mesh wireframe background */
+.mesh-bg {
+  position: absolute; top: 0; left: 0; right: 0; height: 56%;
+  overflow: hidden;
+}
+.mesh-svg { width: 100%; height: 100%; opacity: .15; }
+
+/* Robot illustration placeholder */
+.robot-zone {
+  position: absolute; top: 8%; left: 50%; transform: translateX(-50%);
+  width: 180px; height: 220px;
+  display: flex; align-items: center; justify-content: center;
+}
+.robot-svg { width: 100%; height: 100%; filter: drop-shadow(0 0 30px rgba(205,23,25,.4)); }
+
+/* Orbit ring */
+.orbit {
+  position: absolute; left: 50%; top: 28%;
+  transform: translate(-50%, -50%);
+  width: 200px; height: 200px; border-radius: 50%;
+  border: 1px solid rgba(205,23,25,.15);
+  animation: orbit-spin 8s linear infinite;
+}
+.orbit-dot {
+  position: absolute; top: -4px; left: 50%; transform: translateX(-50%);
+  width: 8px; height: 8px; border-radius: 50%;
+  background: var(--red);
+  box-shadow: 0 0 10px var(--red);
+}
+@keyframes orbit-spin {
+  from { transform: translate(-50%,-50%) rotate(0deg); }
+  to { transform: translate(-50%,-50%) rotate(360deg); }
+}
+
+.p3-content {
+  position: absolute; bottom: 0; left: 0; right: 0;
+  padding: 0 24px 56px;
+}
+
+/* ═══════════════════════════ */
+/* PANEL 4 — DAVINCI RESOLVE  */
+/* ═══════════════════════════ */
+.p4-bg {
+  position: absolute; inset: 0;
+  background: linear-gradient(180deg, #0d0d14 0%, var(--dark) 100%);
+}
+/* Console display */
+.console-zone {
+  position: absolute; top: 8%; left: 50%; transform: translateX(-50%);
+  width: 90%; max-width: 340px;
+}
+.console-screen {
+  background: #0a0a12;
+  border: 1px solid rgba(205,23,25,.2);
+  border-radius: 8px; overflow: hidden;
+  position: relative; cursor: pointer;
+  transition: box-shadow 0.3s;
+}
+.console-screen:hover {
+  box-shadow: 0 0 30px rgba(205,23,25,.2);
+}
+/* Color wheels mockup */
+.color-wheels {
+  display: flex; justify-content: space-around;
+  padding: 20px 16px 10px;
+}
+.wheel {
+  width: 60px; height: 60px; border-radius: 50%;
+  position: relative;
+  background: conic-gradient(
+    #1a1a2e 0deg, #cd1719 60deg, #ff6b35 120deg,
+    #ffd700 180deg, #00ff88 240deg, #0099ff 300deg, #1a1a2e 360deg
+  );
+}
+.wheel::after {
+  content: ''; position: absolute;
+  top: 50%; left: 50%; transform: translate(-50%,-50%);
+  width: 30px; height: 30px; border-radius: 50%;
+  background: #0a0a12;
+}
+.wheel-label {
+  text-align: center; font-size: 8px;
+  font-family: 'Share Tech Mono', monospace;
+  color: rgba(255,255,255,.4); margin-top: 4px;
+}
+/* Waveform */
+.waveform {
+  height: 40px; padding: 0 16px;
+  display: flex; align-items: center; gap: 1px;
+}
+.wave-bar {
+  flex: 1; border-radius: 1px;
+  background: var(--red);
+  opacity: 0.6;
+}
+/* Timeline */
+.timeline-mock {
+  height: 28px; background: rgba(255,255,255,.03);
+  border-top: 1px solid rgba(255,255,255,.06);
+  display: flex; align-items: center; padding: 0 12px; gap: 4px;
+}
+.tl-bar { height: 6px; border-radius: 2px; background: var(--red); opacity: .5; }
+
+/* Play button overlay */
+.play-overlay {
+  position: absolute; inset: 0;
+  display: flex; align-items: center; justify-content: center;
+  background: rgba(0,0,0,.4); opacity: 0;
+  transition: opacity 0.2s; border-radius: 8px;
+}
+.console-screen:hover .play-overlay { opacity: 1; }
+.play-btn {
+  width: 44px; height: 44px; border-radius: 50%;
+  background: var(--red); display: flex;
+  align-items: center; justify-content: center;
+  font-size: 16px; color: white; padding-left: 3px;
+  box-shadow: 0 0 20px rgba(205,23,25,.5);
+}
+
+/* Showreel popup */
+.showreel-popup {
+  position: absolute; inset: 20px;
+  background: rgba(10,10,18,.97);
+  border: 1px solid rgba(205,23,25,.4);
+  border-radius: 10px; z-index: 30;
+  display: none; flex-direction: column;
+  align-items: center; justify-content: center;
+  gap: 12px; backdrop-filter: blur(10px);
+}
+.showreel-popup.show { display: flex; }
+.showreel-title { font-size: 12px; font-weight: 700; color: var(--white); letter-spacing: .1em; }
+.showreel-bar {
+  width: 80%; height: 3px; background: rgba(255,255,255,.1);
+  border-radius: 2px; overflow: hidden;
+}
+.showreel-progress {
+  height: 100%; background: var(--red);
+  border-radius: 2px; width: 0%;
+  transition: width 3s linear;
+  box-shadow: 0 0 8px var(--red);
+}
+.showreel-close {
+  position: absolute; top: 12px; right: 12px;
+  font-size: 14px; color: rgba(255,255,255,.4);
+  cursor: pointer; font-weight: 700;
+}
+.showreel-text { font-size: 10px; color: rgba(255,255,255,.4); letter-spacing: .1em; }
+
+/* Console controls */
+.console-controls {
+  display: flex; justify-content: space-between;
+  padding: 10px 16px;
+}
+.ctrl-btn {
+  width: 32px; height: 12px; border-radius: 2px;
+  background: rgba(255,255,255,.06);
+}
+.ctrl-btn.red { background: rgba(205,23,25,.3); }
+
+.p4-content {
+  position: absolute; bottom: 0; left: 0; right: 0;
+  padding: 0 24px 56px;
+}
+
+/* ═══════════════════════ */
+/* PANEL 5 — CTA          */
+/* ═══════════════════════ */
+.p5-bg {
+  position: absolute; inset: 0;
+  background: radial-gradient(ellipse at 50% 50%, rgba(205,23,25,.15) 0%, transparent 70%);
+}
+.p5-grid {
+  position: absolute; inset: 0;
+  background-image:
+    linear-gradient(rgba(205,23,25,.04) 1px, transparent 1px),
+    linear-gradient(90deg, rgba(205,23,25,.04) 1px, transparent 1px);
+  background-size: 30px 30px;
+  animation: grid-move 20s linear infinite;
+}
+@keyframes grid-move {
+  from { background-position: 0 0; }
+  to { background-position: 30px 30px; }
+}
+
+.p5-content {
+  position: absolute; inset: 0;
+  display: flex; flex-direction: column;
+  justify-content: center; align-items: center;
+  padding: 60px 28px; text-align: center;
+}
+.p5-icon { font-size: 48px; margin-bottom: 20px; filter: drop-shadow(0 0 20px rgba(205,23,25,.5)); }
+.p5-title { font-size: 30px; font-weight: 900; color: var(--white); line-height: 1.1; margin-bottom: 8px; }
+.p5-title em { color: var(--red); font-style: normal; }
+.p5-sub { font-size: 12px; color: rgba(255,255,255,.5); line-height: 1.6; margin-bottom: 28px; max-width: 280px; }
+
+.p5-features { display: flex; flex-direction: column; gap: 8px; width: 100%; margin-bottom: 28px; }
+.p5-feature {
+  display: flex; align-items: center; gap: 10px;
+  padding: 10px 16px;
+  background: rgba(255,255,255,.04);
+  border: 0.5px solid rgba(255,255,255,.07);
+  border-radius: 6px;
+}
+.p5-feat-icon { font-size: 14px; flex-shrink: 0; }
+.p5-feat-text { font-size: 11px; font-weight: 600; color: rgba(255,255,255,.75); text-align: left; }
+
+.cta-button {
+  display: block; width: 100%;
+  padding: 16px;
+  background: var(--red);
+  color: var(--white); text-decoration: none;
+  border-radius: 6px; font-size: 13px; font-weight: 800;
+  letter-spacing: .08em; text-transform: uppercase;
+  text-align: center; cursor: pointer;
+  transition: all 0.2s;
+  box-shadow: 0 0 30px rgba(205,23,25,.3);
+  position: relative; overflow: hidden;
+  border: none;
+}
+.cta-button::before {
+  content: ''; position: absolute;
+  top: 0; left: -100%; width: 100%; height: 100%;
+  background: linear-gradient(90deg, transparent, rgba(255,255,255,.15), transparent);
+  animation: shimmer 2.5s ease-in-out infinite;
+}
+@keyframes shimmer { to { left: 100%; } }
+.cta-button:hover { transform: scale(1.02); box-shadow: 0 0 50px rgba(205,23,25,.5); }
+.cta-button:active { transform: scale(0.98); }
+
+.p5-legal { font-size: 9px; color: rgba(255,255,255,.2); margin-top: 12px; letter-spacing: .05em; }
+
+/* SHARED CONTENT STYLES */
+.panel-title { font-size: 26px; font-weight: 900; color: var(--white); line-height: 1.1; margin-bottom: 6px; }
+.panel-title em { color: var(--red); font-style: normal; }
+.panel-level {
+  font-family: 'Share Tech Mono', monospace;
+  font-size: 9px; color: rgba(255,255,255,.35); letter-spacing: .1em; margin-bottom: 16px;
+}
+
+/* SWIPE HINT */
+.swipe-hint {
+  position: absolute; bottom: 12px; left: 50%;
+  transform: translateX(-50%);
+  font-size: 9px; color: rgba(255,255,255,.2);
+  letter-spacing: .12em; text-transform: uppercase;
+  z-index: 10; white-space: nowrap;
+}
+
+/* SIDE DOTS NAV */
+.side-dots {
+  position: absolute; right: -24px; top: 50%;
+  transform: translateY(-50%);
+  display: flex; flex-direction: column; gap: 6px;
+}
+.side-dot {
+  width: 4px; height: 4px; border-radius: 50%;
+  background: rgba(255,255,255,.2); cursor: pointer;
+  transition: all 0.2s;
+}
+.side-dot.active { background: var(--red); height: 16px; border-radius: 2px; box-shadow: 0 0 6px var(--red); }
+
+/* TOUCH AREAS */
+.touch-left, .touch-right {
+  position: absolute; top: 0; bottom: 0; width: 30%;
+  z-index: 5; cursor: pointer;
+}
+.touch-left { left: 0; }
+.touch-right { right: 0; }
+
+/* HOTSPOT */
+.hotspot {
+  position: absolute; width: 24px; height: 24px;
+  border-radius: 50%;
+  border: 1.5px solid var(--red);
+  cursor: pointer; z-index: 20;
+  display: flex; align-items: center; justify-content: center;
+}
+.hotspot::before {
+  content: ''; position: absolute;
+  width: 100%; height: 100%; border-radius: 50%;
+  border: 1.5px solid var(--red);
+  animation: hotspot-pulse 2s ease-out infinite;
+}
+@keyframes hotspot-pulse {
+  0% { transform: scale(1); opacity: 1; }
+  100% { transform: scale(2.5); opacity: 0; }
+}
+.hotspot-icon { font-size: 10px; color: var(--red); font-weight: 800; }
+</style>
+</head>
+<body>
+
+<div class="cursor" id="cursor"></div>
+
+<div class="catalogue-wrapper">
+  <div style="position:relative;">
+    <div class="device" id="device">
+
+      <!-- TOUCH AREAS -->
+      <div class="touch-left" onclick="prevPanel()"></div>
+      <div class="touch-right" onclick="nextPanel()"></div>
+
+      <!-- NAV ARROWS -->
+      <div class="nav-arrow nav-prev hidden" id="navPrev" onclick="prevPanel()">←</div>
+      <div class="nav-arrow nav-next" id="navNext" onclick="nextPanel()">→</div>
+
+      <!-- PANELS TRACK -->
+      <div class="panels-track" id="track">
+
+        <!-- ═══════ PANEL 1 — COVER ═══════ -->
+        <div class="panel">
+          <div class="p1-bg"></div>
+          <div class="p1-grid"></div>
+          <div class="pxl-logo"><div class="logo-bar"></div>PXL.IMAGE</div>
+          <div class="panel-num">01 / 05</div>
+
+          <!-- Pulse rings -->
+          <div class="pulse-ring"></div>
+          <div class="pulse-ring"></div>
+          <div class="pulse-ring"></div>
+
+          <!-- Rocket SVG -->
+          <div class="rocket-container">
+            <svg class="rocket-svg" viewBox="0 0 120 140" fill="none" xmlns="http://www.w3.org/2000/svg">
+              <!-- Body -->
+              <path d="M60 10 C40 30 30 60 30 90 L90 90 C90 60 80 30 60 10Z" fill="none" stroke="#cd1719" stroke-width="1.5"/>
+              <!-- Nose -->
+              <path d="M60 10 L50 35 L70 35Z" fill="rgba(205,23,25,.2)" stroke="#cd1719" stroke-width="1"/>
+              <!-- Window -->
+              <circle cx="60" cy="60" r="12" fill="none" stroke="#cd1719" stroke-width="1.5"/>
+              <circle cx="60" cy="60" r="6" fill="rgba(205,23,25,.3)" stroke="#cd1719" stroke-width="1"/>
+              <!-- Wings -->
+              <path d="M30 90 L10 110 L30 105Z" fill="none" stroke="#cd1719" stroke-width="1.5"/>
+              <path d="M90 90 L110 110 L90 105Z" fill="none" stroke="#cd1719" stroke-width="1.5"/>
+              <!-- Exhaust -->
+              <path d="M45 90 Q50 105 45 120" fill="none" stroke="rgba(205,23,25,.4)" stroke-width="2" stroke-linecap="round"/>
+              <path d="M60 90 Q60 110 60 128" fill="none" stroke="rgba(205,23,25,.6)" stroke-width="2" stroke-linecap="round"/>
+              <path d="M75 90 Q70 105 75 120" fill="none" stroke="rgba(205,23,25,.4)" stroke-width="2" stroke-linecap="round"/>
+              <!-- Grid lines -->
+              <line x1="30" y1="50" x2="90" y2="50" stroke="rgba(205,23,25,.2)" stroke-width="0.5"/>
+              <line x1="30" y1="70" x2="90" y2="70" stroke="rgba(205,23,25,.2)" stroke-width="0.5"/>
+              <line x1="45" y1="35" x2="45" y2="90" stroke="rgba(205,23,25,.15)" stroke-width="0.5"/>
+              <line x1="75" y1="35" x2="75" y2="90" stroke="rgba(205,23,25,.15)" stroke-width="0.5"/>
+            </svg>
+          </div>
+
+          <div class="p1-content">
+            <div class="p1-tag">Catalogue 2025 — 2026</div>
+            <div class="p1-title">NOS<br><span>FORMATIONS</span></div>
+            <div class="p1-sub">Ingénierie pédagogique appliquée<br>aux logiciels 3D professionnels</div>
+            <div class="p1-specs">
+              <div class="p1-spec">BLENDER <span>///</span> UE5</div>
+              <div class="p1-spec">DAVINCI <span>///</span> VFX</div>
+              <div class="p1-spec">QUALIOPI <span>✓</span></div>
+            </div>
+            <div class="scroll-indicator">
+              <div class="scroll-text">Swipe</div>
+              <div class="scroll-arrow">→</div>
+            </div>
+          </div>
+        </div>
+
+        <!-- ═══════ PANEL 2 — UNREAL ENGINE ═══════ -->
+        <div class="panel">
+          <div class="p2-scene"></div>
+          <div class="p2-arch">
+            <div class="arch-lines">
+              <div class="arch-line al1"></div>
+              <div class="arch-line al2"></div>
+              <div class="arch-line al3"></div>
+              <div class="arch-line al4"></div>
+              <div class="arch-line al5"></div>
+              <div class="arch-line al-h1"></div>
+              <div class="arch-line al-h2"></div>
+              <div class="arch-line al-h3"></div>
+            </div>
+            <div class="arch-floor"></div>
+          </div>
+          <div class="pxl-logo"><div class="logo-bar"></div>PXL.IMAGE</div>
+          <div class="panel-num">02 / 05</div>
+
+          <!-- Hotspot -->
+          <div class="hotspot" style="top:38%;left:42%;" title="Lumen">
+            <div class="hotspot-icon">+</div>
+          </div>
+
+          <div class="p2-content">
+            <div class="formation-badge">Formation</div>
+            <div class="p2-title">MAÎTRISE<br><em>UNREAL ENGINE</em></div>
+            <div class="p2-level">NIVEAU DÉBUTANT → EXPERT · UE5</div>
+            <div class="skills-grid">
+              <div class="skill-tag">
+                <div class="skill-dot"></div>
+                <div class="skill-name">Visualisation Temps Réel</div>
+                <div class="skill-arrow">›</div>
+                <div class="tooltip">Créez des rendus photoréalistes interactifs. Explorez vos projets architecturaux en temps réel avant construction.</div>
+              </div>
+              <div class="skill-tag">
+                <div class="skill-dot"></div>
+                <div class="skill-name">Archviz Photoréaliste</div>
+                <div class="skill-arrow">›</div>
+                <div class="tooltip">Maîtrisez la visualisation architecturale professionnelle. Lumières, matériaux PBR, ambiances réalistes.</div>
+              </div>
+              <div class="skill-tag">
+                <div class="skill-dot"></div>
+                <div class="skill-name">Lumen & Nanite</div>
+                <div class="skill-arrow">›</div>
+                <div class="tooltip">Technologies exclusives UE5. Illumination globale dynamique et géométrie virtualisée ultra-détaillée.</div>
+              </div>
+              <div class="skill-tag">
+                <div class="skill-dot"></div>
+                <div class="skill-name">Blueprints & VFX</div>
+                <div class="skill-arrow">›</div>
+                <div class="tooltip">Logique visuelle sans code. Créez des interactions, animations et effets visuels spectaculaires.</div>
+              </div>
+            </div>
+          </div>
+        </div>
+
+        <!-- ═══════ PANEL 3 — BLENDER 3D ═══════ -->
+        <div class="panel">
+          <div class="p3-bg"></div>
+          <div class="mesh-bg">
+            <svg class="mesh-svg" viewBox="0 0 390 220" xmlns="http://www.w3.org/2000/svg">
+              <defs>
+                <pattern id="mesh" x="0" y="0" width="40" height="40" patternUnits="userSpaceOnUse">
+                  <path d="M 40 0 L 0 0 0 40" fill="none" stroke="#cd1719" stroke-width="0.5"/>
+                </pattern>
+              </defs>
+              <rect width="100%" height="100%" fill="url(#mesh)"/>
+              <polygon points="195,10 50,200 340,200" fill="none" stroke="#cd1719" stroke-width="0.5" opacity="0.4"/>
+              <polygon points="195,30 80,190 310,190" fill="none" stroke="#cd1719" stroke-width="0.3" opacity="0.2"/>
+            </svg>
+          </div>
+
+          <!-- Orbit -->
+          <div class="orbit"><div class="orbit-dot"></div></div>
+
+          <!-- Robot SVG simplified -->
+          <div class="robot-zone">
+            <svg viewBox="0 0 180 220" fill="none" xmlns="http://www.w3.org/2000/svg">
+              <!-- Head -->
+              <rect x="55" y="20" width="70" height="55" rx="8" fill="rgba(205,23,25,.1)" stroke="#cd1719" stroke-width="1.5"/>
+              <rect x="70" y="32" width="18" height="14" rx="3" fill="rgba(205,23,25,.4)"/>
+              <rect x="92" y="32" width="18" height="14" rx="3" fill="rgba(205,23,25,.4)"/>
+              <rect x="68" y="55" width="44" height="4" rx="2" fill="rgba(205,23,25,.3)"/>
+              <!-- Neck -->
+              <rect x="82" y="75" width="16" height="12" rx="2" fill="rgba(255,255,255,.06)" stroke="#cd1719" stroke-width="1"/>
+              <!-- Body -->
+              <rect x="40" y="87" width="100" height="70" rx="10" fill="rgba(205,23,25,.08)" stroke="#cd1719" stroke-width="1.5"/>
+              <circle cx="90" cy="122" r="16" fill="none" stroke="#cd1719" stroke-width="1"/>
+              <circle cx="90" cy="122" r="8" fill="rgba(205,23,25,.3)"/>
+              <rect x="55" y="100" width="20" height="8" rx="2" fill="rgba(205,23,25,.2)"/>
+              <rect x="105" y="100" width="20" height="8" rx="2" fill="rgba(205,23,25,.2)"/>
+              <!-- Arms -->
+              <rect x="12" y="90" width="28" height="10" rx="4" fill="rgba(205,23,25,.1)" stroke="#cd1719" stroke-width="1"/>
+              <rect x="140" y="90" width="28" height="10" rx="4" fill="rgba(205,23,25,.1)" stroke="#cd1719" stroke-width="1"/>
+              <rect x="8" y="100" width="14" height="36" rx="4" fill="rgba(205,23,25,.08)" stroke="#cd1719" stroke-width="1"/>
+              <rect x="158" y="100" width="14" height="36" rx="4" fill="rgba(205,23,25,.08)" stroke="#cd1719" stroke-width="1"/>
+              <!-- Legs -->
+              <rect x="55" y="157" width="28" height="45" rx="6" fill="rgba(205,23,25,.08)" stroke="#cd1719" stroke-width="1"/>
+              <rect x="97" y="157" width="28" height="45" rx="6" fill="rgba(205,23,25,.08)" stroke="#cd1719" stroke-width="1"/>
+              <!-- Grid details -->
+              <line x1="40" y1="107" x2="140" y2="107" stroke="rgba(205,23,25,.15)" stroke-width="0.5"/>
+              <line x1="40" y1="140" x2="140" y2="140" stroke="rgba(205,23,25,.15)" stroke-width="0.5"/>
+            </svg>
+          </div>
+
+          <div class="pxl-logo"><div class="logo-bar"></div>PXL.IMAGE</div>
+          <div class="panel-num">03 / 05</div>
+
+          <div class="p3-content" style="position:absolute;bottom:0;left:0;right:0;padding:0 24px 56px;">
+            <div class="formation-badge">Formation</div>
+            <div class="panel-title">EXPERT<br><em>BLENDER 3D</em></div>
+            <div class="panel-level">NIVEAU FONDAMENTAL → EXPERT · BLENDER 4.x</div>
+            <div class="skills-grid">
+              <div class="skill-tag">
+                <div class="skill-dot"></div>
+                <div class="skill-name">Modélisation Avancée</div>
+                <div class="skill-arrow">›</div>
+                <div class="tooltip">Hard surface & organique. Maîtrisez les outils de modélisation polygonale et subdivisionnelle.</div>
+              </div>
+              <div class="skill-tag">
+                <div class="skill-dot"></div>
+                <div class="skill-name">Sculpting & Texturing</div>
+                <div class="skill-arrow">›</div>
+                <div class="tooltip">Sculptez des formes organiques complexes. Créez des textures PBR réalistes avec les pinceaux Blender.</div>
+              </div>
+              <div class="skill-tag">
+                <div class="skill-dot"></div>
+                <div class="skill-name">Rendu Cycles & EEVEE</div>
+                <div class="skill-arrow">›</div>
+                <div class="tooltip">Maîtrisez les deux moteurs de rendu. Cycles pour le photoréalisme, EEVEE pour le temps réel.</div>
+              </div>
+              <div class="skill-tag">
+                <div class="skill-dot"></div>
+                <div class="skill-name">Géométrie Nodes</div>
+                <div class="skill-arrow">›</div>
+                <div class="tooltip">Création procédurale avancée. Générez des géométries complexes via des nœuds visuels.</div>
+              </div>
+            </div>
+          </div>
+        </div>
+
+        <!-- ═══════ PANEL 4 — DAVINCI RESOLVE ═══════ -->
+        <div class="panel">
+          <div class="p4-bg"></div>
+          <div class="pxl-logo"><div class="logo-bar"></div>PXL.IMAGE</div>
+          <div class="panel-num">04 / 05</div>
+
+          <!-- Console -->
+          <div class="console-zone" style="top:8%;">
+            <div class="console-screen" onclick="toggleShowreel()">
+              <div class="color-wheels">
+                <div style="text-align:center;">
+                  <div class="wheel"></div>
+                  <div class="wheel-label">LIFT</div>
+                </div>
+                <div style="text-align:center;">
+                  <div class="wheel"></div>
+                  <div class="wheel-label">GAMMA</div>
+                </div>
+                <div style="text-align:center;">
+                  <div class="wheel"></div>
+                  <div class="wheel-label">GAIN</div>
+                </div>
+              </div>
+              <div class="waveform" id="waveform"></div>
+              <div class="timeline-mock">
+                <div class="tl-bar" style="width:25%;"></div>
+                <div class="tl-bar" style="width:15%;opacity:.3;"></div>
+                <div class="tl-bar" style="width:35%;"></div>
+                <div class="tl-bar" style="width:10%;opacity:.2;"></div>
+                <div class="tl-bar" style="width:20%;"></div>
+              </div>
+              <div class="console-controls">
+                <div class="ctrl-btn"></div>
+                <div class="ctrl-btn red"></div>
+                <div class="ctrl-btn"></div>
+                <div class="ctrl-btn"></div>
+                <div class="ctrl-btn red"></div>
+              </div>
+              <div class="play-overlay">
+                <div class="play-btn">▶</div>
+              </div>
+              <!-- Showreel popup -->
+              <div class="showreel-popup" id="showreel">
+                <div class="showreel-close" onclick="event.stopPropagation();closeShowreel()">✕</div>
+                <div class="showreel-title">MICRO-SHOWREEL</div>
+                <div class="showreel-text">POST-PRODUCTION VFX</div>
+                <div class="showreel-bar">
+                  <div class="showreel-progress" id="srProgress"></div>
+                </div>
+                <div class="showreel-text" id="srText">Chargement...</div>
+              </div>
+            </div>
+          </div>
+
+          <div class="p4-content">
+            <div class="formation-badge">Formation</div>
+            <div class="panel-title">DAVINCI RESOLVE<br><em>/ VFX</em></div>
+            <div class="panel-level">POST-PRODUCTION · ÉTALONNAGE · COMPOSITING</div>
+            <div class="skills-grid">
+              <div class="skill-tag">
+                <div class="skill-dot"></div>
+                <div class="skill-name">Étalonnage Cinématographique</div>
+                <div class="skill-arrow">›</div>
+                <div class="tooltip">Maîtrisez la colorimétrie professionnelle. LUTs, Color Science, workflows HDR et Dolby Vision.</div>
+              </div>
+              <div class="skill-tag">
+                <div class="skill-dot"></div>
+                <div class="skill-name">Fusion Compositing</div>
+                <div class="skill-arrow">›</div>
+                <div class="tooltip">Compositing nodal avancé. Intégrez des éléments 3D dans vos séquences avec précision.</div>
+              </div>
+              <div class="skill-tag">
+                <div class="skill-dot"></div>
+                <div class="skill-name">Flux de Travail VFX</div>
+                <div class="skill-arrow">›</div>
+                <div class="tooltip">Pipeline professionnel de bout en bout. De la capture à la livraison finale en DCP ou OTT.</div>
+              </div>
+            </div>
+          </div>
+        </div>
+
+        <!-- ═══════ PANEL 5 — CTA ═══════ -->
+        <div class="panel">
+          <div class="p5-bg"></div>
+          <div class="p5-grid"></div>
+          <div class="pxl-logo"><div class="logo-bar"></div>PXL.IMAGE</div>
+          <div class="panel-num">05 / 05</div>
+
+          <div class="p5-content">
+            <div class="p5-icon">🎓</div>
+            <div class="p5-title">REJOINS<br>LA LISTE<br><em>D'ATTENTE</em></div>
+            <div class="p5-sub">Sois informé en avant-première du lancement. Formation conçue par une ingénieure pédagogique.</div>
+
+            <div class="p5-features">
+              <div class="p5-feature">
+                <div class="p5-feat-icon">🧠</div>
+                <div class="p5-feat-text">Sciences cognitives appliquées à l'apprentissage 3D</div>
+              </div>
+              <div class="p5-feature">
+                <div class="p5-feat-icon">📐</div>
+                <div class="p5-feat-text">Blender · Unreal Engine 5 · DaVinci Resolve</div>
+              </div>
+              <div class="p5-feature">
+                <div class="p5-feat-icon">✅</div>
+                <div class="p5-feat-text">Organisme certifié Qualiopi · Financement possible</div>
+              </div>
+              <div class="p5-feature">
+                <div class="p5-feat-icon">🎯</div>
+                <div class="p5-feat-text">Tarif de lancement exclusif pour les inscrits</div>
+              </div>
+            </div>
+
+            <a href="https://4ceaf68c.sibforms.com/serve/MUIFADKKoQKyuyEUSXnayWi0llw5wgaWpBLliV2KpsDkZl7wWBOxtFzbGKdR4cZl_nVm1QbP2wQd7r5xxPeYAT1F8fyjbslEfw1q0GiGo6PrT7A4y9eU-BPK4jlmC2zDFZdulm6PkEuLJWf4RpBoWEa_zTmSLDn_30dhfwvAdz8UguR5pAdol3mH-RcCKy1ZljxPz-GHi48ZrTMwcA==" target="_blank" class="cta-button">
+              👇 Je rejoins la liste d'attente
+            </a>
+            <div class="p5-legal">Gratuit · Sans engagement · 0 spam · RGPD conforme</div>
+          </div>
+        </div>
+
+      </div><!-- end panels-track -->
+
+      <!-- PROGRESS BAR -->
+      <div class="progress-bar" id="progressBar">
+        <div class="progress-segment active" onclick="goTo(0)"></div>
+        <div class="progress-segment" onclick="goTo(1)"></div>
+        <div class="progress-segment" onclick="goTo(2)"></div>
+        <div class="progress-segment" onclick="goTo(3)"></div>
+        <div class="progress-segment" onclick="goTo(4)"></div>
+      </div>
+
+      <div class="swipe-hint">← Swipe →</div>
+
+    </div><!-- end device -->
+
+    <!-- SIDE DOTS -->
+    <div class="side-dots" id="sideDots">
+      <div class="side-dot active" onclick="goTo(0)"></div>
+      <div class="side-dot" onclick="goTo(1)"></div>
+      <div class="side-dot" onclick="goTo(2)"></div>
+      <div class="side-dot" onclick="goTo(3)"></div>
+      <div class="side-dot" onclick="goTo(4)"></div>
+    </div>
+  </div>
+</div>
+
+<script>
+// CURSOR
+const cursor = document.getElementById('cursor');
+document.addEventListener('mousemove', e => {
+  cursor.style.left = e.clientX + 'px';
+  cursor.style.top = e.clientY + 'px';
+});
+document.querySelectorAll('a, button, .skill-tag, .nav-arrow, .side-dot, .progress-segment, .console-screen, .cta-button').forEach(el => {
+  el.addEventListener('mouseenter', () => cursor.classList.add('hover'));
+  el.addEventListener('mouseleave', () => cursor.classList.remove('hover'));
+});
+
+// PANEL NAVIGATION
+let current = 0;
+const total = 5;
+const track = document.getElementById('track');
+const segments = document.querySelectorAll('.progress-segment');
+const dots = document.querySelectorAll('.side-dot');
+const navPrev = document.getElementById('navPrev');
+const navNext = document.getElementById('navNext');
+
+function goTo(idx) {
+  current = Math.max(0, Math.min(total-1, idx));
+  const w = document.querySelector('.device').offsetWidth;
+  track.style.transform = `translateX(-${current * w}px)`;
+
+  segments.forEach((s, i) => {
+    s.classList.toggle('active', i === current);
+    s.classList.toggle('done', i < current);
+  });
+  dots.forEach((d, i) => d.classList.toggle('active', i === current));
+  navPrev.classList.toggle('hidden', current === 0);
+  navNext.classList.toggle('hidden', current === total-1);
+}
+
+function nextPanel() { goTo(current + 1); }
+function prevPanel() { goTo(current - 1); }
+
+// KEYBOARD
+document.addEventListener('keydown', e => {
+  if (e.key === 'ArrowRight') nextPanel();
+  if (e.key === 'ArrowLeft') prevPanel();
+});
+
+// TOUCH SWIPE
+let startX = 0;
+const device = document.getElementById('device');
+device.addEventListener('touchstart', e => { startX = e.touches[0].clientX; }, {passive:true});
+device.addEventListener('touchend', e => {
+  const dx = e.changedTouches[0].clientX - startX;
+  if (Math.abs(dx) > 50) dx < 0 ? nextPanel() : prevPanel();
+}, {passive:true});
+
+// WAVEFORM
+const wf = document.getElementById('waveform');
+for (let i = 0; i < 60; i++) {
+  const bar = document.createElement('div');
+  bar.className = 'wave-bar';
+  const h = Math.random() * 28 + 4;
+  bar.style.height = h + 'px';
+  bar.style.opacity = (0.3 + Math.random() * 0.7).toFixed(2);
+  wf.appendChild(bar);
+}
+
+// SHOWREEL
+let srTimer = null;
+function toggleShowreel() {
+  const popup = document.getElementById('showreel');
+  if (popup.classList.contains('show')) { closeShowreel(); return; }
+  popup.classList.add('show');
+  const prog = document.getElementById('srProgress');
+  const txt = document.getElementById('srText');
+  prog.style.width = '0%';
+  txt.textContent = 'Étalonnage cinématographique...';
+  setTimeout(() => { prog.style.width = '100%'; }, 100);
+  let msgs = ['Étalonnage cinématographique...','Fusion Compositing VFX...','Post-production intensive...'];
+  let mi = 0;
+  srTimer = setInterval(() => {
+    mi = (mi+1) % msgs.length;
+    txt.textContent = msgs[mi];
+  }, 1000);
+  setTimeout(() => closeShowreel(), 3200);
+}
+function closeShowreel() {
+  document.getElementById('showreel').classList.remove('show');
+  clearInterval(srTimer);
+  const prog = document.getElementById('srProgress');
+  prog.style.transition = 'none';
+  prog.style.width = '0%';
+  setTimeout(() => { prog.style.transition = 'width 3s linear'; }, 50);
+}
+
+// INIT
+goTo(0);
+</script>
+</body>
+</html>
