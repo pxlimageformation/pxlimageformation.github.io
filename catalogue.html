@@ -2,1068 +2,1132 @@
 <html lang="fr">
 <head>
 <meta charset="UTF-8">
-<meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
-<title>PXL.IMAGE.FORMATION — Catalogue Interactif</title>
-<link href="https://fonts.googleapis.com/css2?family=Poppins:wght@300;400;500;600;700;800;900&family=Share+Tech+Mono&display=swap" rel="stylesheet">
+<meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0">
+<title>PXL.IMAGE — Catalogue Formations</title>
+<link href="https://fonts.googleapis.com/css2?family=Bebas+Neue&family=Poppins:wght@300;400;500;600;700;800;900&family=JetBrains+Mono:wght@300;400;700&display=swap" rel="stylesheet">
 <style>
-* { box-sizing: border-box; margin: 0; padding: 0; -webkit-tap-highlight-color: transparent; }
+*, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
 
 :root {
   --red: #cd1719;
+  --red-dim: rgba(205,23,25,.15);
+  --red-glow: rgba(205,23,25,.4);
   --dark: #282727;
+  --darker: #1a1919;
+  --darkest: #0f0f0f;
   --white: #ffffff;
-  --panel-w: min(390px, 100vw);
+  --off-white: #f0ede8;
+  --muted: rgba(255,255,255,.35);
+  --mono: 'JetBrains Mono', monospace;
+  --display: 'Bebas Neue', sans-serif;
+  --body: 'Poppins', sans-serif;
+  --panel-w: min(400px, 100vw);
   --panel-h: calc(var(--panel-w) * 16 / 9);
 }
 
-html, body {
+html { height: 100%; }
+body {
   height: 100%;
-  background: #111;
-  font-family: 'Poppins', sans-serif;
+  background: var(--darkest);
+  font-family: var(--body);
   overflow: hidden;
   cursor: none;
+  user-select: none;
 }
 
-/* CUSTOM CURSOR */
-.cursor {
-  position: fixed; width: 12px; height: 12px;
-  border: 1.5px solid var(--red); border-radius: 50%;
-  pointer-events: none; z-index: 9999;
-  transform: translate(-50%, -50%);
-  transition: transform 0.1s, width 0.2s, height 0.2s, background 0.2s;
+/* ─── CURSOR ─── */
+#cur {
+  position: fixed; z-index: 9999;
+  width: 6px; height: 6px;
+  background: var(--red);
+  border-radius: 50%;
+  pointer-events: none;
+  transform: translate(-50%,-50%);
+  transition: width .15s, height .15s, border-radius .15s;
+  box-shadow: 0 0 12px var(--red);
 }
-.cursor.hover { width: 28px; height: 28px; background: rgba(205,23,25,.15); }
+#cur-ring {
+  position: fixed; z-index: 9998;
+  width: 32px; height: 32px;
+  border: 1px solid rgba(205,23,25,.5);
+  border-radius: 50%;
+  pointer-events: none;
+  transform: translate(-50%,-50%);
+  transition: transform .08s, width .2s, height .2s, opacity .2s;
+}
+body.hovering #cur { width: 14px; height: 14px; border-radius: 2px; }
+body.hovering #cur-ring { width: 48px; height: 48px; opacity: .4; }
 
-/* WRAPPER */
-.catalogue-wrapper {
+/* ─── LAYOUT ─── */
+.stage {
   position: fixed; inset: 0;
   display: flex; align-items: center; justify-content: center;
+  gap: 32px;
 }
 
-/* DEVICE FRAME */
+/* ─── DEVICE ─── */
 .device {
   width: var(--panel-w);
   height: var(--panel-h);
   position: relative;
   overflow: hidden;
-  border-radius: 20px;
-  box-shadow: 0 0 0 1px rgba(205,23,25,.2), 0 40px 80px rgba(0,0,0,.8), 0 0 60px rgba(205,23,25,.08);
+  border-radius: 2px;
+  box-shadow:
+    0 0 0 1px rgba(205,23,25,.25),
+    0 0 40px rgba(205,23,25,.1),
+    0 60px 120px rgba(0,0,0,.9);
 }
 
-/* PANELS TRACK */
-.panels-track {
+/* SCAN LINE EFFECT */
+.device::after {
+  content: '';
+  position: absolute; inset: 0;
+  background: repeating-linear-gradient(
+    0deg,
+    transparent 0px,
+    transparent 3px,
+    rgba(0,0,0,.08) 3px,
+    rgba(0,0,0,.08) 4px
+  );
+  pointer-events: none;
+  z-index: 200;
+}
+
+/* CORNER BRACKETS */
+.device::before {
+  content: '';
+  position: absolute; inset: 0;
+  background:
+    linear-gradient(var(--red), var(--red)) top left / 20px 2px no-repeat,
+    linear-gradient(var(--red), var(--red)) top left / 2px 20px no-repeat,
+    linear-gradient(var(--red), var(--red)) top right / 20px 2px no-repeat,
+    linear-gradient(var(--red), var(--red)) top right / 2px 20px no-repeat,
+    linear-gradient(var(--red), var(--red)) bottom left / 20px 2px no-repeat,
+    linear-gradient(var(--red), var(--red)) bottom left / 2px 20px no-repeat,
+    linear-gradient(var(--red), var(--red)) bottom right / 20px 2px no-repeat,
+    linear-gradient(var(--red), var(--red)) bottom right / 2px 20px no-repeat;
+  z-index: 300; pointer-events: none;
+}
+
+/* ─── TRACK ─── */
+.track {
   display: flex;
   width: calc(var(--panel-w) * 5);
   height: 100%;
-  transition: transform 0.5s cubic-bezier(0.77,0,0.18,1);
+  transition: transform .6s cubic-bezier(.86,0,.07,1);
 }
 
+/* ─── PANEL BASE ─── */
 .panel {
   width: var(--panel-w);
   height: 100%;
   position: relative;
   overflow: hidden;
   flex-shrink: 0;
-  background: var(--dark);
+  background: var(--darker);
 }
 
-/* NOISE OVERLAY */
-.panel::before {
-  content: '';
-  position: absolute; inset: 0;
-  background-image: url("data:image/svg+xml,%3Csvg viewBox='0 0 256 256' xmlns='http://www.w3.org/2000/svg'%3E%3Cfilter id='n'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='0.9' numOctaves='4' stitchTiles='stitch'/%3E%3C/filter%3E%3Crect width='100%25' height='100%25' filter='url(%23n)' opacity='0.03'/%3E%3C/svg%3E");
-  pointer-events: none; z-index: 1;
+/* HUD ELEMENTS */
+.hud-tl {
+  position: absolute; top: 16px; left: 18px;
+  z-index: 10; display: flex; align-items: center; gap: 8px;
+}
+.hud-logo {
+  font-family: var(--mono); font-size: 9px; font-weight: 700;
+  color: var(--muted); letter-spacing: .18em;
+  text-transform: uppercase;
+}
+.hud-sep { width: 1px; height: 10px; background: var(--red); opacity: .5; }
+
+.hud-tr {
+  position: absolute; top: 16px; right: 18px;
+  z-index: 10;
+  font-family: var(--mono); font-size: 9px; font-weight: 300;
+  color: var(--red); letter-spacing: .12em;
 }
 
-/* SCAN LINES */
-.panel::after {
-  content: '';
-  position: absolute; inset: 0;
-  background: repeating-linear-gradient(0deg, transparent, transparent 2px, rgba(0,0,0,.03) 2px, rgba(0,0,0,.03) 4px);
-  pointer-events: none; z-index: 1;
+/* RED TOP LINE */
+.top-line {
+  position: absolute; top: 0; left: 0; right: 0;
+  height: 2px; background: var(--red);
+  box-shadow: 0 0 8px var(--red-glow);
+  z-index: 10;
 }
 
-/* PROGRESS BAR */
-.progress-bar {
-  position: absolute; bottom: 0; left: 0; right: 0;
-  height: 3px; background: rgba(255,255,255,.06); z-index: 100;
-  display: flex;
-}
-.progress-segment {
-  flex: 1; height: 100%;
-  background: rgba(255,255,255,.08);
-  position: relative; cursor: pointer;
-}
-.progress-segment::after {
-  content: ''; position: absolute; inset: 0;
-  background: var(--red);
-  transform: scaleX(0); transform-origin: left;
-  transition: transform 0.4s ease;
-  box-shadow: 0 0 8px var(--red);
-}
-.progress-segment.active::after { transform: scaleX(1); }
-.progress-segment.done::after { transform: scaleX(1); background: rgba(205,23,25,.4); box-shadow: none; }
+/* ─────────────────────────────── */
+/* PANEL 1 — COVER BRUTALISTE     */
+/* ─────────────────────────────── */
+.p1 { background: var(--darkest); }
 
-/* NAV ARROWS */
-.nav-arrow {
-  position: absolute; top: 50%; z-index: 50;
-  width: 36px; height: 36px; border-radius: 50%;
-  background: rgba(205,23,25,.15);
-  border: 1px solid rgba(205,23,25,.3);
-  display: flex; align-items: center; justify-content: center;
-  cursor: pointer; transform: translateY(-50%);
-  transition: all 0.2s; backdrop-filter: blur(4px);
-  color: var(--red); font-size: 14px; font-weight: 700;
-}
-.nav-arrow:hover { background: rgba(205,23,25,.3); transform: translateY(-50%) scale(1.1); }
-.nav-prev { left: 12px; }
-.nav-next { right: 12px; }
-.nav-arrow.hidden { opacity: 0; pointer-events: none; }
-
-/* PANEL NUMBER */
-.panel-num {
-  position: absolute; top: 20px; right: 20px;
-  font-size: 10px; font-weight: 600; color: rgba(255,255,255,.3);
-  letter-spacing: .15em; z-index: 10;
-  font-family: 'Share Tech Mono', monospace;
-}
-
-/* LOGO */
-.pxl-logo {
-  position: absolute; top: 20px; left: 20px;
-  font-size: 10px; font-weight: 700; color: rgba(255,255,255,.4);
-  letter-spacing: .22em; text-transform: uppercase; z-index: 10;
-  display: flex; align-items: center; gap: 6px;
-}
-.logo-bar { width: 2px; height: 12px; background: var(--red); border-radius: 1px; }
-
-/* ═══════════════════════ */
-/* PANEL 1 — COVER        */
-/* ═══════════════════════ */
-.p1-bg {
-  position: absolute; inset: 0;
-  background: radial-gradient(ellipse at 50% 40%, rgba(205,23,25,.12) 0%, transparent 70%);
-}
 .p1-grid {
   position: absolute; inset: 0;
   background-image:
-    linear-gradient(rgba(205,23,25,.05) 1px, transparent 1px),
-    linear-gradient(90deg, rgba(205,23,25,.05) 1px, transparent 1px);
-  background-size: 40px 40px;
+    linear-gradient(rgba(205,23,25,.06) 1px, transparent 1px),
+    linear-gradient(90deg, rgba(205,23,25,.06) 1px, transparent 1px);
+  background-size: 32px 32px;
 }
 
-/* ROCKET */
-.rocket-container {
-  position: absolute; left: 50%; top: 30%;
-  transform: translate(-50%, -50%);
-  animation: rocket-float 3s ease-in-out infinite;
+/* Diagonal red slash */
+.p1-slash {
+  position: absolute;
+  top: -10%; left: 55%; right: -20%;
+  bottom: -10%;
+  background: var(--red);
+  transform: skewX(-12deg);
+  opacity: .07;
 }
-@keyframes rocket-float {
-  0%, 100% { transform: translate(-50%, -50%) translateY(0); }
-  50% { transform: translate(-50%, -50%) translateY(-12px); }
+.p1-slash2 {
+  position: absolute;
+  top: -10%; left: 62%; right: -30%;
+  bottom: -10%;
+  background: var(--red);
+  transform: skewX(-12deg);
+  opacity: .04;
 }
-.rocket-svg { width: 120px; filter: drop-shadow(0 0 20px rgba(205,23,25,.5)); }
 
-/* PULSE RINGS */
-.pulse-ring {
-  position: absolute; left: 50%; top: 30%;
-  transform: translate(-50%, -50%);
-  width: 160px; height: 160px; border-radius: 50%;
-  border: 1px solid rgba(205,23,25,.3);
-  animation: pulse-out 2.5s ease-out infinite;
+/* Giant number background */
+.p1-giant-num {
+  position: absolute;
+  bottom: -20px; right: -10px;
+  font-family: var(--display);
+  font-size: 220px; line-height: 1;
+  color: rgba(205,23,25,.04);
+  letter-spacing: -10px;
+  pointer-events: none;
 }
-.pulse-ring:nth-child(2) { animation-delay: 0.8s; }
-.pulse-ring:nth-child(3) { animation-delay: 1.6s; }
-@keyframes pulse-out {
-  0% { transform: translate(-50%,-50%) scale(0.8); opacity: .6; }
-  100% { transform: translate(-50%,-50%) scale(2.2); opacity: 0; }
+
+/* Animated scan line */
+.p1-scan {
+  position: absolute; left: 0; right: 0; height: 1px;
+  background: linear-gradient(90deg, transparent, var(--red), transparent);
+  opacity: .4;
+  animation: scan 4s ease-in-out infinite;
+  box-shadow: 0 0 10px var(--red);
+}
+@keyframes scan {
+  0% { top: 0%; opacity: 0; }
+  10% { opacity: .4; }
+  90% { opacity: .4; }
+  100% { top: 100%; opacity: 0; }
 }
 
 .p1-content {
   position: absolute; bottom: 0; left: 0; right: 0;
-  padding: 0 28px 60px;
+  padding: 0 24px 52px;
 }
-.p1-tag {
-  display: inline-block; padding: 4px 12px;
-  background: rgba(205,23,25,.15);
-  border: 1px solid rgba(205,23,25,.3);
-  border-radius: 2px; font-size: 9px; font-weight: 700;
-  color: var(--red); letter-spacing: .2em; text-transform: uppercase;
-  margin-bottom: 12px;
-  font-family: 'Share Tech Mono', monospace;
+
+.p1-overline {
+  font-family: var(--mono); font-size: 9px; font-weight: 400;
+  color: var(--red); letter-spacing: .3em; text-transform: uppercase;
+  margin-bottom: 10px;
+  display: flex; align-items: center; gap: 8px;
 }
+.p1-overline::before {
+  content: ''; display: inline-block;
+  width: 20px; height: 1px; background: var(--red);
+}
+
 .p1-title {
-  font-size: 38px; font-weight: 900; color: var(--white);
-  line-height: 1.05; margin-bottom: 8px; letter-spacing: -.5px;
+  font-family: var(--display);
+  font-size: 80px; line-height: .92;
+  color: var(--white); letter-spacing: 2px;
+  margin-bottom: 4px;
 }
-.p1-title span { color: var(--red); }
-.p1-sub {
-  font-size: 11px; font-weight: 400; color: rgba(255,255,255,.45);
-  line-height: 1.6; margin-bottom: 20px; letter-spacing: .03em;
+.p1-title .red { color: var(--red); }
+
+.p1-subtitle {
+  font-size: 10px; font-weight: 300;
+  color: var(--muted); letter-spacing: .08em;
+  line-height: 1.6; margin-bottom: 20px;
+  padding-left: 2px;
 }
+
+/* Tech specs row */
 .p1-specs {
-  display: flex; gap: 16px; margin-bottom: 24px;
+  display: flex; gap: 0; margin-bottom: 22px;
+  border: 1px solid rgba(255,255,255,.06);
 }
 .p1-spec {
-  font-family: 'Share Tech Mono', monospace;
-  font-size: 9px; color: rgba(255,255,255,.3);
-  letter-spacing: .08em;
+  flex: 1; padding: 8px 10px;
+  border-right: 1px solid rgba(255,255,255,.06);
 }
-.p1-spec span { color: var(--red); }
-.scroll-indicator {
-  display: flex; flex-direction: column; align-items: center; gap: 4px;
+.p1-spec:last-child { border-right: none; }
+.p1-spec-label {
+  font-family: var(--mono); font-size: 7px; color: var(--red);
+  letter-spacing: .15em; text-transform: uppercase; margin-bottom: 3px;
 }
-.scroll-text { font-size: 9px; color: rgba(255,255,255,.3); letter-spacing: .15em; text-transform: uppercase; }
-.scroll-arrow { color: var(--red); animation: bounce-x 1.5s ease-in-out infinite; font-size: 14px; }
-@keyframes bounce-x {
-  0%, 100% { transform: translateX(0); }
-  50% { transform: translateX(6px); }
+.p1-spec-val {
+  font-family: var(--mono); font-size: 9px; color: rgba(255,255,255,.6);
+  letter-spacing: .05em;
 }
 
-/* ═══════════════════════════ */
-/* PANEL 2 — UNREAL ENGINE    */
-/* ═══════════════════════════ */
-.p2-scene {
-  position: absolute; inset: 0;
-  background: linear-gradient(160deg, #1a0f0f 0%, var(--dark) 60%);
-  overflow: hidden;
+.p1-cta {
+  display: flex; align-items: center; gap: 10px;
+  font-family: var(--mono); font-size: 9px; color: var(--muted);
+  letter-spacing: .2em; text-transform: uppercase;
 }
-.p2-arch {
+.p1-cta-arrow {
+  color: var(--red); animation: arrow-pulse 1.5s ease-in-out infinite;
+  font-size: 14px;
+}
+@keyframes arrow-pulse {
+  0%, 100% { transform: translateX(0); opacity: 1; }
+  50% { transform: translateX(6px); opacity: .6; }
+}
+
+/* ─────────────────────────────── */
+/* PANELS 2-4 — FORMATIONS        */
+/* ─────────────────────────────── */
+.formation-panel { background: var(--darker); }
+
+/* Background texture */
+.fp-texture {
   position: absolute; inset: 0;
   background:
-    linear-gradient(to bottom, transparent 30%, rgba(40,39,39,.95) 80%),
-    linear-gradient(135deg, rgba(205,23,25,.04) 0%, transparent 50%);
-}
-/* Wireframe architectural lines */
-.arch-lines {
-  position: absolute; top: 5%; left: 0; right: 0; height: 55%;
-  overflow: hidden;
-}
-.arch-line {
-  position: absolute; background: rgba(205,23,25,.15);
-  transform-origin: bottom center;
-}
-.al1 { width: 1px; height: 80%; left: 20%; bottom: 0; transform: perspective(200px) rotateX(10deg); }
-.al2 { width: 1px; height: 90%; left: 35%; bottom: 0; }
-.al3 { width: 1px; height: 85%; left: 50%; bottom: 0; }
-.al4 { width: 1px; height: 90%; left: 65%; bottom: 0; }
-.al5 { width: 1px; height: 80%; left: 80%; bottom: 0; }
-.al-h1 { width: 100%; height: 1px; top: 20%; }
-.al-h2 { width: 100%; height: 1px; top: 40%; }
-.al-h3 { width: 100%; height: 1px; top: 60%; }
-/* Glowing floor */
-.arch-floor {
-  position: absolute; bottom: 42%; left: 0; right: 0;
-  height: 1px; background: linear-gradient(90deg, transparent, rgba(205,23,25,.4), transparent);
-  box-shadow: 0 0 20px rgba(205,23,25,.2);
+    radial-gradient(ellipse at 80% 20%, rgba(205,23,25,.08) 0%, transparent 50%),
+    radial-gradient(ellipse at 20% 80%, rgba(205,23,25,.04) 0%, transparent 50%);
 }
 
-.p2-content {
-  position: absolute; bottom: 0; left: 0; right: 0;
-  padding: 0 24px 56px;
+/* Large background letter */
+.fp-bg-letter {
+  position: absolute; right: -20px; top: 30%;
+  font-family: var(--display); font-size: 280px; line-height: 1;
+  color: rgba(205,23,25,.03); pointer-events: none;
+  transform: translateY(-50%);
 }
-.formation-badge {
-  display: inline-flex; align-items: center; gap: 6px;
-  background: var(--red); border-radius: 2px;
-  padding: 4px 10px; margin-bottom: 14px;
-  font-size: 9px; font-weight: 700; color: var(--white);
-  letter-spacing: .18em; text-transform: uppercase;
+
+/* Visual zone */
+.fp-visual {
+  position: absolute; top: 40px; left: 0; right: 0;
+  height: 44%; overflow: hidden;
 }
-.p2-title { font-size: 26px; font-weight: 900; color: var(--white); line-height: 1.1; margin-bottom: 6px; }
-.p2-title em { color: var(--red); font-style: normal; }
-.p2-level {
-  font-family: 'Share Tech Mono', monospace;
-  font-size: 9px; color: rgba(255,255,255,.35); letter-spacing: .1em;
+
+/* UE5 — Architectural wireframe */
+.ue-scene {
+  width: 100%; height: 100%;
+  background: linear-gradient(180deg, #0d0808 0%, #1a0f0f 100%);
+  position: relative; overflow: hidden;
+}
+.ue-floor {
+  position: absolute; bottom: 0; left: 0; right: 0; height: 40%;
+  background: linear-gradient(to top, rgba(205,23,25,.06), transparent);
+}
+.ue-vlines {
+  position: absolute; inset: 0;
+  display: flex; justify-content: space-around;
+  align-items: flex-end; padding-bottom: 0;
+}
+.ue-vl {
+  width: 1px; background: linear-gradient(to top, rgba(205,23,25,.3), transparent);
+}
+.ue-hlines {
+  position: absolute; inset: 0;
+  display: flex; flex-direction: column; justify-content: flex-end;
+}
+.ue-hl {
+  width: 100%; height: 1px;
+  background: linear-gradient(90deg, transparent, rgba(205,23,25,.2), transparent);
   margin-bottom: 16px;
 }
-.skills-grid { display: flex; flex-direction: column; gap: 6px; margin-bottom: 16px; }
-.skill-tag {
-  display: flex; align-items: center; gap: 8px;
-  padding: 7px 12px;
-  background: rgba(255,255,255,.04);
-  border: 0.5px solid rgba(255,255,255,.08);
-  border-radius: 4px; cursor: pointer;
-  transition: all 0.2s; position: relative;
+.ue-glow-line {
+  position: absolute; bottom: 38%; left: 0; right: 0;
+  height: 1px;
+  background: linear-gradient(90deg, transparent, rgba(205,23,25,.8), transparent);
+  box-shadow: 0 0 20px rgba(205,23,25,.4);
 }
-.skill-tag:hover, .skill-tag.active {
-  background: rgba(205,23,25,.1);
-  border-color: rgba(205,23,25,.3);
+/* Arch structure */
+.ue-arch {
+  position: absolute; bottom: 35%; left: 50%;
+  transform: translateX(-50%);
+  width: 60%; height: 65%;
+  border: 1px solid rgba(205,23,25,.25);
+  border-bottom: none;
+  border-radius: 50% 50% 0 0 / 40% 40% 0 0;
 }
-.skill-dot { width: 5px; height: 5px; border-radius: 50%; background: var(--red); flex-shrink: 0; }
-.skill-name { font-size: 11px; font-weight: 600; color: rgba(255,255,255,.8); flex: 1; }
-.skill-arrow { font-size: 9px; color: var(--red); opacity: 0; transition: opacity 0.2s; }
-.skill-tag:hover .skill-arrow { opacity: 1; }
-
-/* TOOLTIP */
-.tooltip {
-  position: absolute; left: 0; bottom: calc(100% + 6px);
-  background: rgba(20,10,10,.95);
-  border: 1px solid rgba(205,23,25,.3);
-  border-radius: 6px; padding: 10px 14px;
-  font-size: 10px; color: rgba(255,255,255,.8);
-  line-height: 1.5; width: 240px; z-index: 50;
-  backdrop-filter: blur(8px);
-  display: none; pointer-events: none;
-}
-.tooltip::before {
-  content: ''; position: absolute; bottom: -5px; left: 20px;
-  width: 8px; height: 8px; background: rgba(20,10,10,.95);
-  border-right: 1px solid rgba(205,23,25,.3);
-  border-bottom: 1px solid rgba(205,23,25,.3);
-  transform: rotate(45deg);
-}
-.skill-tag:hover .tooltip, .skill-tag.active .tooltip { display: block; }
-
-/* ═══════════════════════ */
-/* PANEL 3 — BLENDER 3D   */
-/* ═══════════════════════ */
-.p3-bg {
-  position: absolute; inset: 0;
-  background: linear-gradient(180deg, #1a1212 0%, var(--dark) 100%);
-}
-/* Mesh wireframe background */
-.mesh-bg {
-  position: absolute; top: 0; left: 0; right: 0; height: 56%;
-  overflow: hidden;
-}
-.mesh-svg { width: 100%; height: 100%; opacity: .15; }
-
-/* Robot illustration placeholder */
-.robot-zone {
-  position: absolute; top: 8%; left: 50%; transform: translateX(-50%);
-  width: 180px; height: 220px;
-  display: flex; align-items: center; justify-content: center;
-}
-.robot-svg { width: 100%; height: 100%; filter: drop-shadow(0 0 30px rgba(205,23,25,.4)); }
-
-/* Orbit ring */
-.orbit {
-  position: absolute; left: 50%; top: 28%;
-  transform: translate(-50%, -50%);
-  width: 200px; height: 200px; border-radius: 50%;
+.ue-arch2 {
+  position: absolute; bottom: 35%; left: 50%;
+  transform: translateX(-50%);
+  width: 40%; height: 50%;
   border: 1px solid rgba(205,23,25,.15);
-  animation: orbit-spin 8s linear infinite;
+  border-bottom: none;
+  border-radius: 50% 50% 0 0 / 40% 40% 0 0;
 }
-.orbit-dot {
-  position: absolute; top: -4px; left: 50%; transform: translateX(-50%);
-  width: 8px; height: 8px; border-radius: 50%;
-  background: var(--red);
-  box-shadow: 0 0 10px var(--red);
+.ue-column { position: absolute; bottom: 35%; width: 1px; background: rgba(205,23,25,.3); }
+
+/* Blender — Robot wireframe */
+.bl-scene {
+  width: 100%; height: 100%;
+  background: linear-gradient(160deg, #0d0d0d 0%, #141210 100%);
+  position: relative; overflow: hidden; display: flex; align-items: center; justify-content: center;
 }
-@keyframes orbit-spin {
+.bl-mesh {
+  position: absolute; inset: 0; opacity: .08;
+}
+.bl-robot {
+  width: 120px; height: 150px; position: relative;
+  filter: drop-shadow(0 0 20px rgba(205,23,25,.5));
+}
+.bl-orbit {
+  position: absolute; top: 50%; left: 50%;
+  transform: translate(-50%,-50%);
+  width: 160px; height: 160px; border-radius: 50%;
+  border: 1px solid rgba(205,23,25,.12);
+  animation: spin 10s linear infinite;
+}
+.bl-orbit-dot {
+  position: absolute; top: -3px; left: 50%; transform: translateX(-50%);
+  width: 6px; height: 6px; border-radius: 50%;
+  background: var(--red); box-shadow: 0 0 8px var(--red);
+}
+@keyframes spin {
   from { transform: translate(-50%,-50%) rotate(0deg); }
   to { transform: translate(-50%,-50%) rotate(360deg); }
 }
 
-.p3-content {
-  position: absolute; bottom: 0; left: 0; right: 0;
-  padding: 0 24px 56px;
+/* DaVinci — Color console */
+.dv-scene {
+  width: 100%; height: 100%;
+  background: #080810;
+  position: relative; display: flex; flex-direction: column;
+  align-items: center; justify-content: center; gap: 8px;
+  padding: 12px;
 }
-
-/* ═══════════════════════════ */
-/* PANEL 4 — DAVINCI RESOLVE  */
-/* ═══════════════════════════ */
-.p4-bg {
-  position: absolute; inset: 0;
-  background: linear-gradient(180deg, #0d0d14 0%, var(--dark) 100%);
+.dv-wheels {
+  display: flex; gap: 12px; justify-content: center;
 }
-/* Console display */
-.console-zone {
-  position: absolute; top: 8%; left: 50%; transform: translateX(-50%);
-  width: 90%; max-width: 340px;
-}
-.console-screen {
-  background: #0a0a12;
-  border: 1px solid rgba(205,23,25,.2);
-  border-radius: 8px; overflow: hidden;
+.dv-wheel-wrap { text-align: center; }
+.dv-wheel {
+  width: 52px; height: 52px; border-radius: 50%;
+  background: conic-gradient(#cd1719 0deg, #ff6b35 60deg, #ffd700 120deg, #00ff88 180deg, #0099ff 240deg, #ff00ff 300deg, #cd1719 360deg);
   position: relative; cursor: pointer;
-  transition: box-shadow 0.3s;
+  transition: transform .2s;
 }
-.console-screen:hover {
-  box-shadow: 0 0 30px rgba(205,23,25,.2);
+.dv-wheel:hover { transform: scale(1.1); }
+.dv-wheel::after {
+  content: ''; position: absolute; top: 50%; left: 50%;
+  transform: translate(-50%,-50%);
+  width: 28px; height: 28px; border-radius: 50%;
+  background: #080810;
 }
-/* Color wheels mockup */
-.color-wheels {
-  display: flex; justify-content: space-around;
-  padding: 20px 16px 10px;
+.dv-wl {
+  font-family: var(--mono); font-size: 7px;
+  color: rgba(255,255,255,.3); margin-top: 4px; letter-spacing: .1em;
 }
-.wheel {
-  width: 60px; height: 60px; border-radius: 50%;
-  position: relative;
-  background: conic-gradient(
-    #1a1a2e 0deg, #cd1719 60deg, #ff6b35 120deg,
-    #ffd700 180deg, #00ff88 240deg, #0099ff 300deg, #1a1a2e 360deg
-  );
+.dv-waveform {
+  width: 100%; height: 28px;
+  display: flex; align-items: center; gap: 1px; padding: 0 4px;
 }
-.wheel::after {
-  content: ''; position: absolute;
-  top: 50%; left: 50%; transform: translate(-50%,-50%);
-  width: 30px; height: 30px; border-radius: 50%;
-  background: #0a0a12;
+.dv-bar { flex: 1; border-radius: 1px; background: var(--red); opacity: .5; }
+.dv-timeline {
+  width: 100%; height: 20px; background: rgba(255,255,255,.03);
+  display: flex; align-items: center; padding: 0 8px; gap: 3px;
+  border-top: 1px solid rgba(255,255,255,.05);
 }
-.wheel-label {
-  text-align: center; font-size: 8px;
-  font-family: 'Share Tech Mono', monospace;
-  color: rgba(255,255,255,.4); margin-top: 4px;
-}
-/* Waveform */
-.waveform {
-  height: 40px; padding: 0 16px;
-  display: flex; align-items: center; gap: 1px;
-}
-.wave-bar {
-  flex: 1; border-radius: 1px;
-  background: var(--red);
-  opacity: 0.6;
-}
-/* Timeline */
-.timeline-mock {
-  height: 28px; background: rgba(255,255,255,.03);
-  border-top: 1px solid rgba(255,255,255,.06);
-  display: flex; align-items: center; padding: 0 12px; gap: 4px;
-}
-.tl-bar { height: 6px; border-radius: 2px; background: var(--red); opacity: .5; }
+.dv-tl-seg { height: 5px; border-radius: 1px; background: var(--red); opacity: .4; }
 
-/* Play button overlay */
-.play-overlay {
-  position: absolute; inset: 0;
-  display: flex; align-items: center; justify-content: center;
-  background: rgba(0,0,0,.4); opacity: 0;
-  transition: opacity 0.2s; border-radius: 8px;
-}
-.console-screen:hover .play-overlay { opacity: 1; }
-.play-btn {
-  width: 44px; height: 44px; border-radius: 50%;
-  background: var(--red); display: flex;
-  align-items: center; justify-content: center;
-  font-size: 16px; color: white; padding-left: 3px;
-  box-shadow: 0 0 20px rgba(205,23,25,.5);
-}
-
-/* Showreel popup */
-.showreel-popup {
-  position: absolute; inset: 20px;
-  background: rgba(10,10,18,.97);
-  border: 1px solid rgba(205,23,25,.4);
-  border-radius: 10px; z-index: 30;
-  display: none; flex-direction: column;
-  align-items: center; justify-content: center;
-  gap: 12px; backdrop-filter: blur(10px);
-}
-.showreel-popup.show { display: flex; }
-.showreel-title { font-size: 12px; font-weight: 700; color: var(--white); letter-spacing: .1em; }
-.showreel-bar {
-  width: 80%; height: 3px; background: rgba(255,255,255,.1);
-  border-radius: 2px; overflow: hidden;
-}
-.showreel-progress {
-  height: 100%; background: var(--red);
-  border-radius: 2px; width: 0%;
-  transition: width 3s linear;
-  box-shadow: 0 0 8px var(--red);
-}
-.showreel-close {
-  position: absolute; top: 12px; right: 12px;
-  font-size: 14px; color: rgba(255,255,255,.4);
-  cursor: pointer; font-weight: 700;
-}
-.showreel-text { font-size: 10px; color: rgba(255,255,255,.4); letter-spacing: .1em; }
-
-/* Console controls */
-.console-controls {
-  display: flex; justify-content: space-between;
-  padding: 10px 16px;
-}
-.ctrl-btn {
-  width: 32px; height: 12px; border-radius: 2px;
-  background: rgba(255,255,255,.06);
-}
-.ctrl-btn.red { background: rgba(205,23,25,.3); }
-
-.p4-content {
+/* Formation content */
+.fp-content {
   position: absolute; bottom: 0; left: 0; right: 0;
-  padding: 0 24px 56px;
+  padding: 0 22px 52px;
 }
 
-/* ═══════════════════════ */
-/* PANEL 5 — CTA          */
-/* ═══════════════════════ */
-.p5-bg {
-  position: absolute; inset: 0;
-  background: radial-gradient(ellipse at 50% 50%, rgba(205,23,25,.15) 0%, transparent 70%);
+.fp-badge {
+  display: inline-flex; align-items: center; gap: 6px;
+  margin-bottom: 10px;
 }
+.fp-badge-num {
+  font-family: var(--mono); font-size: 9px; color: var(--red);
+  letter-spacing: .1em; background: var(--red-dim);
+  padding: 3px 8px; border: 1px solid rgba(205,23,25,.25);
+}
+.fp-badge-label {
+  font-family: var(--mono); font-size: 9px; color: var(--muted);
+  letter-spacing: .15em; text-transform: uppercase;
+}
+
+.fp-title {
+  font-family: var(--display);
+  font-size: 52px; line-height: .92;
+  color: var(--white); letter-spacing: 1px;
+  margin-bottom: 3px;
+}
+.fp-title .red { color: var(--red); }
+
+.fp-level {
+  font-family: var(--mono); font-size: 8px; color: var(--muted);
+  letter-spacing: .12em; text-transform: uppercase;
+  margin-bottom: 14px;
+  display: flex; align-items: center; gap: 6px;
+}
+.fp-level::before {
+  content: ''; width: 12px; height: 1px; background: var(--red);
+}
+
+/* Skill list */
+.fp-skills { display: flex; flex-direction: column; gap: 4px; }
+.fp-skill {
+  display: flex; align-items: center; gap: 8px;
+  padding: 7px 10px;
+  border: 1px solid rgba(255,255,255,.05);
+  cursor: pointer; position: relative;
+  transition: border-color .2s, background .2s;
+  overflow: hidden;
+}
+.fp-skill::before {
+  content: ''; position: absolute;
+  left: 0; top: 0; bottom: 0; width: 0;
+  background: var(--red-dim);
+  transition: width .3s;
+}
+.fp-skill:hover { border-color: rgba(205,23,25,.3); }
+.fp-skill:hover::before { width: 100%; }
+.fp-skill-dot {
+  width: 4px; height: 4px; border-radius: 50%;
+  background: var(--red); flex-shrink: 0;
+  box-shadow: 0 0 6px var(--red); z-index: 1;
+}
+.fp-skill-name {
+  font-size: 10px; font-weight: 500;
+  color: rgba(255,255,255,.75); flex: 1; z-index: 1;
+}
+.fp-skill-tag {
+  font-family: var(--mono); font-size: 7px;
+  color: var(--red); letter-spacing: .08em; z-index: 1;
+  opacity: 0; transition: opacity .2s;
+}
+.fp-skill:hover .fp-skill-tag { opacity: 1; }
+
+/* Tooltip */
+.fp-tooltip {
+  position: absolute; left: 0; bottom: calc(100% + 4px);
+  background: rgba(10,8,8,.97);
+  border: 1px solid rgba(205,23,25,.25);
+  padding: 10px 14px; width: 260px; z-index: 50;
+  font-size: 10px; color: rgba(255,255,255,.7);
+  line-height: 1.5; pointer-events: none;
+  display: none;
+  font-family: var(--body);
+}
+.fp-tooltip::after {
+  content: ''; position: absolute;
+  bottom: -4px; left: 14px;
+  width: 6px; height: 6px;
+  background: rgba(10,8,8,.97);
+  border-right: 1px solid rgba(205,23,25,.25);
+  border-bottom: 1px solid rgba(205,23,25,.25);
+  transform: rotate(45deg);
+}
+.fp-skill:hover .fp-tooltip { display: block; }
+
+/* ─────────────────────────────── */
+/* PANEL 5 — CTA                  */
+/* ─────────────────────────────── */
+.p5 { background: var(--darkest); }
+
 .p5-grid {
   position: absolute; inset: 0;
   background-image:
-    linear-gradient(rgba(205,23,25,.04) 1px, transparent 1px),
-    linear-gradient(90deg, rgba(205,23,25,.04) 1px, transparent 1px);
-  background-size: 30px 30px;
-  animation: grid-move 20s linear infinite;
+    linear-gradient(rgba(205,23,25,.05) 1px, transparent 1px),
+    linear-gradient(90deg, rgba(205,23,25,.05) 1px, transparent 1px);
+  background-size: 28px 28px;
+  animation: grid-drift 30s linear infinite;
 }
-@keyframes grid-move {
+@keyframes grid-drift {
   from { background-position: 0 0; }
-  to { background-position: 30px 30px; }
+  to { background-position: 28px 28px; }
+}
+
+.p5-radial {
+  position: absolute; left: 50%; top: 40%;
+  transform: translate(-50%,-50%);
+  width: 300px; height: 300px; border-radius: 50%;
+  background: radial-gradient(circle, rgba(205,23,25,.12) 0%, transparent 70%);
+  animation: radial-pulse 3s ease-in-out infinite;
+}
+@keyframes radial-pulse {
+  0%, 100% { transform: translate(-50%,-50%) scale(1); opacity: 1; }
+  50% { transform: translate(-50%,-50%) scale(1.15); opacity: .6; }
+}
+
+/* Rotating ring */
+.p5-ring {
+  position: absolute; left: 50%; top: 32%;
+  transform: translate(-50%,-50%);
+  width: 180px; height: 180px; border-radius: 50%;
+  border: 1px solid rgba(205,23,25,.2);
+  animation: ring-spin 20s linear infinite;
+}
+.p5-ring::before {
+  content: ''; position: absolute;
+  top: -3px; left: 50%; transform: translateX(-50%);
+  width: 6px; height: 6px; border-radius: 50%;
+  background: var(--red); box-shadow: 0 0 10px var(--red);
+}
+@keyframes ring-spin {
+  from { transform: translate(-50%,-50%) rotate(0deg); }
+  to { transform: translate(-50%,-50%) rotate(360deg); }
+}
+.p5-ring2 {
+  position: absolute; left: 50%; top: 32%;
+  transform: translate(-50%,-50%);
+  width: 130px; height: 130px; border-radius: 50%;
+  border: 1px solid rgba(205,23,25,.1);
+  animation: ring-spin 12s linear infinite reverse;
+}
+
+/* PXL monogram */
+.p5-monogram {
+  position: absolute; left: 50%; top: 32%;
+  transform: translate(-50%,-50%);
+  font-family: var(--display); font-size: 56px;
+  color: var(--red); letter-spacing: 4px;
+  text-shadow: 0 0 30px rgba(205,23,25,.5);
 }
 
 .p5-content {
-  position: absolute; inset: 0;
-  display: flex; flex-direction: column;
-  justify-content: center; align-items: center;
-  padding: 60px 28px; text-align: center;
+  position: absolute; bottom: 0; left: 0; right: 0;
+  padding: 0 22px 52px;
 }
-.p5-icon { font-size: 48px; margin-bottom: 20px; filter: drop-shadow(0 0 20px rgba(205,23,25,.5)); }
-.p5-title { font-size: 30px; font-weight: 900; color: var(--white); line-height: 1.1; margin-bottom: 8px; }
-.p5-title em { color: var(--red); font-style: normal; }
-.p5-sub { font-size: 12px; color: rgba(255,255,255,.5); line-height: 1.6; margin-bottom: 28px; max-width: 280px; }
 
-.p5-features { display: flex; flex-direction: column; gap: 8px; width: 100%; margin-bottom: 28px; }
-.p5-feature {
+.p5-overline {
+  font-family: var(--mono); font-size: 9px; color: var(--red);
+  letter-spacing: .3em; text-transform: uppercase;
+  margin-bottom: 8px; display: flex; align-items: center; gap: 6px;
+}
+.p5-overline::before { content: ''; width: 16px; height: 1px; background: var(--red); }
+
+.p5-title {
+  font-family: var(--display);
+  font-size: 56px; line-height: .92;
+  color: var(--white); letter-spacing: 1px;
+  margin-bottom: 12px;
+}
+.p5-title .red { color: var(--red); }
+
+/* Feature list */
+.p5-features { display: flex; flex-direction: column; gap: 5px; margin-bottom: 18px; }
+.p5-feat {
   display: flex; align-items: center; gap: 10px;
-  padding: 10px 16px;
-  background: rgba(255,255,255,.04);
-  border: 0.5px solid rgba(255,255,255,.07);
-  border-radius: 6px;
+  padding: 8px 10px;
+  background: rgba(255,255,255,.02);
+  border-left: 2px solid rgba(205,23,25,.4);
 }
-.p5-feat-icon { font-size: 14px; flex-shrink: 0; }
-.p5-feat-text { font-size: 11px; font-weight: 600; color: rgba(255,255,255,.75); text-align: left; }
+.p5-feat-ico { font-size: 12px; flex-shrink: 0; }
+.p5-feat-txt { font-size: 10px; font-weight: 500; color: rgba(255,255,255,.65); }
 
-.cta-button {
+/* CTA Button */
+.p5-btn {
   display: block; width: 100%;
-  padding: 16px;
+  padding: 14px 20px;
   background: var(--red);
-  color: var(--white); text-decoration: none;
-  border-radius: 6px; font-size: 13px; font-weight: 800;
-  letter-spacing: .08em; text-transform: uppercase;
-  text-align: center; cursor: pointer;
-  transition: all 0.2s;
-  box-shadow: 0 0 30px rgba(205,23,25,.3);
+  color: var(--white);
+  font-family: var(--display);
+  font-size: 22px; letter-spacing: 3px;
+  text-align: center; text-decoration: none;
+  cursor: pointer; border: none;
   position: relative; overflow: hidden;
-  border: none;
+  transition: box-shadow .2s;
+  box-shadow: 0 0 0 rgba(205,23,25,0);
 }
-.cta-button::before {
-  content: ''; position: absolute;
-  top: 0; left: -100%; width: 100%; height: 100%;
-  background: linear-gradient(90deg, transparent, rgba(255,255,255,.15), transparent);
-  animation: shimmer 2.5s ease-in-out infinite;
+.p5-btn::before {
+  content: '';
+  position: absolute; top: 0; left: -100%;
+  width: 100%; height: 100%;
+  background: linear-gradient(90deg, transparent, rgba(255,255,255,.2), transparent);
+  animation: btn-shimmer 2s ease-in-out infinite;
 }
-@keyframes shimmer { to { left: 100%; } }
-.cta-button:hover { transform: scale(1.02); box-shadow: 0 0 50px rgba(205,23,25,.5); }
-.cta-button:active { transform: scale(0.98); }
+@keyframes btn-shimmer { to { left: 200%; } }
+.p5-btn:hover { box-shadow: 0 0 40px rgba(205,23,25,.5); }
+.p5-btn:active { transform: scale(.98); }
 
-.p5-legal { font-size: 9px; color: rgba(255,255,255,.2); margin-top: 12px; letter-spacing: .05em; }
-
-/* SHARED CONTENT STYLES */
-.panel-title { font-size: 26px; font-weight: 900; color: var(--white); line-height: 1.1; margin-bottom: 6px; }
-.panel-title em { color: var(--red); font-style: normal; }
-.panel-level {
-  font-family: 'Share Tech Mono', monospace;
-  font-size: 9px; color: rgba(255,255,255,.35); letter-spacing: .1em; margin-bottom: 16px;
+.p5-legal {
+  margin-top: 10px; text-align: center;
+  font-family: var(--mono); font-size: 7px;
+  color: rgba(255,255,255,.2); letter-spacing: .1em;
 }
+
+/* ─── PROGRESS ─── */
+.progress {
+  position: absolute; bottom: 0; left: 0; right: 0;
+  height: 2px; background: rgba(255,255,255,.04);
+  display: flex; z-index: 100;
+}
+.prog-seg {
+  flex: 1; height: 100%; cursor: pointer;
+  position: relative;
+  border-right: 1px solid rgba(0,0,0,.3);
+}
+.prog-seg:last-child { border-right: none; }
+.prog-seg::after {
+  content: ''; position: absolute; inset: 0;
+  background: var(--red);
+  box-shadow: 0 0 6px var(--red);
+  transform: scaleX(0); transform-origin: left;
+  transition: transform .4s ease;
+}
+.prog-seg.active::after { transform: scaleX(1); }
+.prog-seg.done::after { transform: scaleX(1); background: rgba(205,23,25,.3); box-shadow: none; }
+
+/* ─── SIDE PANEL ─── */
+.side-panel {
+  display: flex; flex-direction: column;
+  gap: 8px; align-items: center;
+}
+.side-dot {
+  width: 3px; height: 3px; border-radius: 50%;
+  background: rgba(255,255,255,.2); cursor: pointer;
+  transition: all .2s;
+}
+.side-dot.active {
+  background: var(--red); height: 20px;
+  border-radius: 1.5px;
+  box-shadow: 0 0 8px var(--red);
+}
+
+/* ─── NAV ─── */
+.nav-btn {
+  position: absolute; top: 50%; z-index: 50;
+  width: 32px; height: 32px;
+  border: 1px solid rgba(205,23,25,.3);
+  background: rgba(10,8,8,.8);
+  display: flex; align-items: center; justify-content: center;
+  cursor: pointer; transform: translateY(-50%);
+  transition: all .2s; backdrop-filter: blur(4px);
+  font-family: var(--mono); font-size: 12px; color: var(--red);
+}
+.nav-btn:hover { background: var(--red-dim); border-color: var(--red); }
+.nav-btn.hidden { opacity: 0; pointer-events: none; }
+.nav-prev { left: 10px; }
+.nav-next { right: 10px; }
+
+/* TOUCH */
+.touch-l, .touch-r {
+  position: absolute; top: 0; bottom: 0; width: 28%; z-index: 5;
+}
+.touch-l { left: 0; }
+.touch-r { right: 0; }
 
 /* SWIPE HINT */
 .swipe-hint {
-  position: absolute; bottom: 12px; left: 50%;
+  position: absolute; bottom: 8px; left: 50%;
   transform: translateX(-50%);
-  font-size: 9px; color: rgba(255,255,255,.2);
-  letter-spacing: .12em; text-transform: uppercase;
-  z-index: 10; white-space: nowrap;
+  font-family: var(--mono); font-size: 7px;
+  color: rgba(255,255,255,.15); letter-spacing: .2em;
+  text-transform: uppercase; z-index: 50; white-space: nowrap;
 }
-
-/* SIDE DOTS NAV */
-.side-dots {
-  position: absolute; right: -24px; top: 50%;
-  transform: translateY(-50%);
-  display: flex; flex-direction: column; gap: 6px;
-}
-.side-dot {
-  width: 4px; height: 4px; border-radius: 50%;
-  background: rgba(255,255,255,.2); cursor: pointer;
-  transition: all 0.2s;
-}
-.side-dot.active { background: var(--red); height: 16px; border-radius: 2px; box-shadow: 0 0 6px var(--red); }
-
-/* TOUCH AREAS */
-.touch-left, .touch-right {
-  position: absolute; top: 0; bottom: 0; width: 30%;
-  z-index: 5; cursor: pointer;
-}
-.touch-left { left: 0; }
-.touch-right { right: 0; }
-
-/* HOTSPOT */
-.hotspot {
-  position: absolute; width: 24px; height: 24px;
-  border-radius: 50%;
-  border: 1.5px solid var(--red);
-  cursor: pointer; z-index: 20;
-  display: flex; align-items: center; justify-content: center;
-}
-.hotspot::before {
-  content: ''; position: absolute;
-  width: 100%; height: 100%; border-radius: 50%;
-  border: 1.5px solid var(--red);
-  animation: hotspot-pulse 2s ease-out infinite;
-}
-@keyframes hotspot-pulse {
-  0% { transform: scale(1); opacity: 1; }
-  100% { transform: scale(2.5); opacity: 0; }
-}
-.hotspot-icon { font-size: 10px; color: var(--red); font-weight: 800; }
 </style>
 </head>
 <body>
+<div id="cur"></div>
+<div id="cur-ring"></div>
 
-<div class="cursor" id="cursor"></div>
-
-<div class="catalogue-wrapper">
+<div class="stage">
   <div style="position:relative;">
     <div class="device" id="device">
+      <div class="touch-l" onclick="prev()"></div>
+      <div class="touch-r" onclick="next()"></div>
+      <div class="nav-btn nav-prev hidden" id="navP" onclick="prev()">←</div>
+      <div class="nav-btn nav-next" id="navN" onclick="next()">→</div>
 
-      <!-- TOUCH AREAS -->
-      <div class="touch-left" onclick="prevPanel()"></div>
-      <div class="touch-right" onclick="nextPanel()"></div>
+      <div class="track" id="track">
 
-      <!-- NAV ARROWS -->
-      <div class="nav-arrow nav-prev hidden" id="navPrev" onclick="prevPanel()">←</div>
-      <div class="nav-arrow nav-next" id="navNext" onclick="nextPanel()">→</div>
-
-      <!-- PANELS TRACK -->
-      <div class="panels-track" id="track">
-
-        <!-- ═══════ PANEL 1 — COVER ═══════ -->
-        <div class="panel">
-          <div class="p1-bg"></div>
+        <!-- ══ PANEL 1 — COVER ══ -->
+        <div class="panel p1">
           <div class="p1-grid"></div>
-          <div class="pxl-logo"><div class="logo-bar"></div>PXL.IMAGE</div>
-          <div class="panel-num">01 / 05</div>
-
-          <!-- Pulse rings -->
-          <div class="pulse-ring"></div>
-          <div class="pulse-ring"></div>
-          <div class="pulse-ring"></div>
-
-          <!-- Rocket SVG -->
-          <div class="rocket-container">
-            <svg class="rocket-svg" viewBox="0 0 120 140" fill="none" xmlns="http://www.w3.org/2000/svg">
-              <!-- Body -->
-              <path d="M60 10 C40 30 30 60 30 90 L90 90 C90 60 80 30 60 10Z" fill="none" stroke="#cd1719" stroke-width="1.5"/>
-              <!-- Nose -->
-              <path d="M60 10 L50 35 L70 35Z" fill="rgba(205,23,25,.2)" stroke="#cd1719" stroke-width="1"/>
-              <!-- Window -->
-              <circle cx="60" cy="60" r="12" fill="none" stroke="#cd1719" stroke-width="1.5"/>
-              <circle cx="60" cy="60" r="6" fill="rgba(205,23,25,.3)" stroke="#cd1719" stroke-width="1"/>
-              <!-- Wings -->
-              <path d="M30 90 L10 110 L30 105Z" fill="none" stroke="#cd1719" stroke-width="1.5"/>
-              <path d="M90 90 L110 110 L90 105Z" fill="none" stroke="#cd1719" stroke-width="1.5"/>
-              <!-- Exhaust -->
-              <path d="M45 90 Q50 105 45 120" fill="none" stroke="rgba(205,23,25,.4)" stroke-width="2" stroke-linecap="round"/>
-              <path d="M60 90 Q60 110 60 128" fill="none" stroke="rgba(205,23,25,.6)" stroke-width="2" stroke-linecap="round"/>
-              <path d="M75 90 Q70 105 75 120" fill="none" stroke="rgba(205,23,25,.4)" stroke-width="2" stroke-linecap="round"/>
-              <!-- Grid lines -->
-              <line x1="30" y1="50" x2="90" y2="50" stroke="rgba(205,23,25,.2)" stroke-width="0.5"/>
-              <line x1="30" y1="70" x2="90" y2="70" stroke="rgba(205,23,25,.2)" stroke-width="0.5"/>
-              <line x1="45" y1="35" x2="45" y2="90" stroke="rgba(205,23,25,.15)" stroke-width="0.5"/>
-              <line x1="75" y1="35" x2="75" y2="90" stroke="rgba(205,23,25,.15)" stroke-width="0.5"/>
-            </svg>
+          <div class="p1-slash"></div>
+          <div class="p1-slash2"></div>
+          <div class="p1-giant-num">26</div>
+          <div class="p1-scan"></div>
+          <div class="top-line"></div>
+          <div class="hud-tl">
+            <div class="hud-logo">PXL.IMAGE</div>
+            <div class="hud-sep"></div>
+            <div class="hud-logo" style="color:var(--red);opacity:.7;">FORMATION</div>
           </div>
-
+          <div class="hud-tr">01 / 05</div>
           <div class="p1-content">
-            <div class="p1-tag">Catalogue 2025 — 2026</div>
-            <div class="p1-title">NOS<br><span>FORMATIONS</span></div>
-            <div class="p1-sub">Ingénierie pédagogique appliquée<br>aux logiciels 3D professionnels</div>
+            <div class="p1-overline">Catalogue · 2025 — 2026</div>
+            <div class="p1-title">NOS<br><span class="red">FORMA</span><br>TIONS</div>
+            <div class="p1-subtitle">
+              Ingénierie pédagogique appliquée<br>
+              aux logiciels 3D professionnels.<br>
+              Sciences cognitives × Blender × UE5.
+            </div>
             <div class="p1-specs">
-              <div class="p1-spec">BLENDER <span>///</span> UE5</div>
-              <div class="p1-spec">DAVINCI <span>///</span> VFX</div>
-              <div class="p1-spec">QUALIOPI <span>✓</span></div>
+              <div class="p1-spec">
+                <div class="p1-spec-label">Logiciels</div>
+                <div class="p1-spec-val">BL · UE5 · DV</div>
+              </div>
+              <div class="p1-spec">
+                <div class="p1-spec-label">Niveaux</div>
+                <div class="p1-spec-val">DÉB · INT · PRO</div>
+              </div>
+              <div class="p1-spec">
+                <div class="p1-spec-label">Format</div>
+                <div class="p1-spec-val">PRÉ · DIST · HYB</div>
+              </div>
             </div>
-            <div class="scroll-indicator">
-              <div class="scroll-text">Swipe</div>
-              <div class="scroll-arrow">→</div>
-            </div>
-          </div>
-        </div>
-
-        <!-- ═══════ PANEL 2 — UNREAL ENGINE ═══════ -->
-        <div class="panel">
-          <div class="p2-scene"></div>
-          <div class="p2-arch">
-            <div class="arch-lines">
-              <div class="arch-line al1"></div>
-              <div class="arch-line al2"></div>
-              <div class="arch-line al3"></div>
-              <div class="arch-line al4"></div>
-              <div class="arch-line al5"></div>
-              <div class="arch-line al-h1"></div>
-              <div class="arch-line al-h2"></div>
-              <div class="arch-line al-h3"></div>
-            </div>
-            <div class="arch-floor"></div>
-          </div>
-          <div class="pxl-logo"><div class="logo-bar"></div>PXL.IMAGE</div>
-          <div class="panel-num">02 / 05</div>
-
-          <!-- Hotspot -->
-          <div class="hotspot" style="top:38%;left:42%;" title="Lumen">
-            <div class="hotspot-icon">+</div>
-          </div>
-
-          <div class="p2-content">
-            <div class="formation-badge">Formation</div>
-            <div class="p2-title">MAÎTRISE<br><em>UNREAL ENGINE</em></div>
-            <div class="p2-level">NIVEAU DÉBUTANT → EXPERT · UE5</div>
-            <div class="skills-grid">
-              <div class="skill-tag">
-                <div class="skill-dot"></div>
-                <div class="skill-name">Visualisation Temps Réel</div>
-                <div class="skill-arrow">›</div>
-                <div class="tooltip">Créez des rendus photoréalistes interactifs. Explorez vos projets architecturaux en temps réel avant construction.</div>
-              </div>
-              <div class="skill-tag">
-                <div class="skill-dot"></div>
-                <div class="skill-name">Archviz Photoréaliste</div>
-                <div class="skill-arrow">›</div>
-                <div class="tooltip">Maîtrisez la visualisation architecturale professionnelle. Lumières, matériaux PBR, ambiances réalistes.</div>
-              </div>
-              <div class="skill-tag">
-                <div class="skill-dot"></div>
-                <div class="skill-name">Lumen & Nanite</div>
-                <div class="skill-arrow">›</div>
-                <div class="tooltip">Technologies exclusives UE5. Illumination globale dynamique et géométrie virtualisée ultra-détaillée.</div>
-              </div>
-              <div class="skill-tag">
-                <div class="skill-dot"></div>
-                <div class="skill-name">Blueprints & VFX</div>
-                <div class="skill-arrow">›</div>
-                <div class="tooltip">Logique visuelle sans code. Créez des interactions, animations et effets visuels spectaculaires.</div>
-              </div>
+            <div class="p1-cta">
+              <span>Swipe pour explorer</span>
+              <span class="p1-cta-arrow">→</span>
             </div>
           </div>
         </div>
 
-        <!-- ═══════ PANEL 3 — BLENDER 3D ═══════ -->
-        <div class="panel">
-          <div class="p3-bg"></div>
-          <div class="mesh-bg">
-            <svg class="mesh-svg" viewBox="0 0 390 220" xmlns="http://www.w3.org/2000/svg">
-              <defs>
-                <pattern id="mesh" x="0" y="0" width="40" height="40" patternUnits="userSpaceOnUse">
-                  <path d="M 40 0 L 0 0 0 40" fill="none" stroke="#cd1719" stroke-width="0.5"/>
-                </pattern>
-              </defs>
-              <rect width="100%" height="100%" fill="url(#mesh)"/>
-              <polygon points="195,10 50,200 340,200" fill="none" stroke="#cd1719" stroke-width="0.5" opacity="0.4"/>
-              <polygon points="195,30 80,190 310,190" fill="none" stroke="#cd1719" stroke-width="0.3" opacity="0.2"/>
-            </svg>
+        <!-- ══ PANEL 2 — UNREAL ENGINE ══ -->
+        <div class="panel formation-panel">
+          <div class="fp-texture"></div>
+          <div class="fp-bg-letter">U</div>
+          <div class="top-line"></div>
+          <div class="hud-tl">
+            <div class="hud-logo">PXL.IMAGE</div>
+          </div>
+          <div class="hud-tr">02 / 05</div>
+
+          <div class="fp-visual">
+            <div class="ue-scene">
+              <div class="ue-vlines" id="ueVlines"></div>
+              <div class="ue-hlines">
+                <div class="ue-hl"></div>
+                <div class="ue-hl"></div>
+                <div class="ue-hl"></div>
+              </div>
+              <div class="ue-arch"></div>
+              <div class="ue-arch2"></div>
+              <div class="ue-column" style="left:25%;height:65%;"></div>
+              <div class="ue-column" style="left:75%;height:65%;"></div>
+              <div class="ue-floor"></div>
+              <div class="ue-glow-line"></div>
+            </div>
           </div>
 
-          <!-- Orbit -->
-          <div class="orbit"><div class="orbit-dot"></div></div>
-
-          <!-- Robot SVG simplified -->
-          <div class="robot-zone">
-            <svg viewBox="0 0 180 220" fill="none" xmlns="http://www.w3.org/2000/svg">
-              <!-- Head -->
-              <rect x="55" y="20" width="70" height="55" rx="8" fill="rgba(205,23,25,.1)" stroke="#cd1719" stroke-width="1.5"/>
-              <rect x="70" y="32" width="18" height="14" rx="3" fill="rgba(205,23,25,.4)"/>
-              <rect x="92" y="32" width="18" height="14" rx="3" fill="rgba(205,23,25,.4)"/>
-              <rect x="68" y="55" width="44" height="4" rx="2" fill="rgba(205,23,25,.3)"/>
-              <!-- Neck -->
-              <rect x="82" y="75" width="16" height="12" rx="2" fill="rgba(255,255,255,.06)" stroke="#cd1719" stroke-width="1"/>
-              <!-- Body -->
-              <rect x="40" y="87" width="100" height="70" rx="10" fill="rgba(205,23,25,.08)" stroke="#cd1719" stroke-width="1.5"/>
-              <circle cx="90" cy="122" r="16" fill="none" stroke="#cd1719" stroke-width="1"/>
-              <circle cx="90" cy="122" r="8" fill="rgba(205,23,25,.3)"/>
-              <rect x="55" y="100" width="20" height="8" rx="2" fill="rgba(205,23,25,.2)"/>
-              <rect x="105" y="100" width="20" height="8" rx="2" fill="rgba(205,23,25,.2)"/>
-              <!-- Arms -->
-              <rect x="12" y="90" width="28" height="10" rx="4" fill="rgba(205,23,25,.1)" stroke="#cd1719" stroke-width="1"/>
-              <rect x="140" y="90" width="28" height="10" rx="4" fill="rgba(205,23,25,.1)" stroke="#cd1719" stroke-width="1"/>
-              <rect x="8" y="100" width="14" height="36" rx="4" fill="rgba(205,23,25,.08)" stroke="#cd1719" stroke-width="1"/>
-              <rect x="158" y="100" width="14" height="36" rx="4" fill="rgba(205,23,25,.08)" stroke="#cd1719" stroke-width="1"/>
-              <!-- Legs -->
-              <rect x="55" y="157" width="28" height="45" rx="6" fill="rgba(205,23,25,.08)" stroke="#cd1719" stroke-width="1"/>
-              <rect x="97" y="157" width="28" height="45" rx="6" fill="rgba(205,23,25,.08)" stroke="#cd1719" stroke-width="1"/>
-              <!-- Grid details -->
-              <line x1="40" y1="107" x2="140" y2="107" stroke="rgba(205,23,25,.15)" stroke-width="0.5"/>
-              <line x1="40" y1="140" x2="140" y2="140" stroke="rgba(205,23,25,.15)" stroke-width="0.5"/>
-            </svg>
-          </div>
-
-          <div class="pxl-logo"><div class="logo-bar"></div>PXL.IMAGE</div>
-          <div class="panel-num">03 / 05</div>
-
-          <div class="p3-content" style="position:absolute;bottom:0;left:0;right:0;padding:0 24px 56px;">
-            <div class="formation-badge">Formation</div>
-            <div class="panel-title">EXPERT<br><em>BLENDER 3D</em></div>
-            <div class="panel-level">NIVEAU FONDAMENTAL → EXPERT · BLENDER 4.x</div>
-            <div class="skills-grid">
-              <div class="skill-tag">
-                <div class="skill-dot"></div>
-                <div class="skill-name">Modélisation Avancée</div>
-                <div class="skill-arrow">›</div>
-                <div class="tooltip">Hard surface & organique. Maîtrisez les outils de modélisation polygonale et subdivisionnelle.</div>
+          <div class="fp-content">
+            <div class="fp-badge">
+              <div class="fp-badge-num">F-01</div>
+              <div class="fp-badge-label">Formation</div>
+            </div>
+            <div class="fp-title">MAÎTRISE<br><span class="red">UNREAL</span><br>ENGINE</div>
+            <div class="fp-level">Débutant · Intermédiaire · Pro · Présentiel · Distanciel · Hybride</div>
+            <div class="fp-skills">
+              <div class="fp-skill">
+                <div class="fp-skill-dot"></div>
+                <div class="fp-skill-name">Visualisation Temps Réel</div>
+                <div class="fp-skill-tag">ARCHVIZ</div>
+                <div class="fp-tooltip">Créez des rendus photoréalistes interactifs. Explorez vos projets architecturaux avant construction.</div>
               </div>
-              <div class="skill-tag">
-                <div class="skill-dot"></div>
-                <div class="skill-name">Sculpting & Texturing</div>
-                <div class="skill-arrow">›</div>
-                <div class="tooltip">Sculptez des formes organiques complexes. Créez des textures PBR réalistes avec les pinceaux Blender.</div>
+              <div class="fp-skill">
+                <div class="fp-skill-dot"></div>
+                <div class="fp-skill-name">Lumen & Nanite</div>
+                <div class="fp-skill-tag">UE5</div>
+                <div class="fp-tooltip">Technologies exclusives UE5. Illumination globale dynamique et géométrie virtualisée ultra-détaillée.</div>
               </div>
-              <div class="skill-tag">
-                <div class="skill-dot"></div>
-                <div class="skill-name">Rendu Cycles & EEVEE</div>
-                <div class="skill-arrow">›</div>
-                <div class="tooltip">Maîtrisez les deux moteurs de rendu. Cycles pour le photoréalisme, EEVEE pour le temps réel.</div>
+              <div class="fp-skill">
+                <div class="fp-skill-dot"></div>
+                <div class="fp-skill-name">Blueprints & VFX</div>
+                <div class="fp-skill-tag">LOGIQUE</div>
+                <div class="fp-tooltip">Logique visuelle sans code. Créez des interactions et effets visuels spectaculaires.</div>
               </div>
-              <div class="skill-tag">
-                <div class="skill-dot"></div>
-                <div class="skill-name">Géométrie Nodes</div>
-                <div class="skill-arrow">›</div>
-                <div class="tooltip">Création procédurale avancée. Générez des géométries complexes via des nœuds visuels.</div>
+              <div class="fp-skill">
+                <div class="fp-skill-dot"></div>
+                <div class="fp-skill-name">Pipeline Architectural</div>
+                <div class="fp-skill-tag">PRO</div>
+                <div class="fp-tooltip">Workflow professionnel complet. De l'import Revit/SketchUp au rendu final livrable client.</div>
               </div>
             </div>
           </div>
         </div>
 
-        <!-- ═══════ PANEL 4 — DAVINCI RESOLVE ═══════ -->
-        <div class="panel">
-          <div class="p4-bg"></div>
-          <div class="pxl-logo"><div class="logo-bar"></div>PXL.IMAGE</div>
-          <div class="panel-num">04 / 05</div>
+        <!-- ══ PANEL 3 — BLENDER ══ -->
+        <div class="panel formation-panel">
+          <div class="fp-texture"></div>
+          <div class="fp-bg-letter">B</div>
+          <div class="top-line"></div>
+          <div class="hud-tl"><div class="hud-logo">PXL.IMAGE</div></div>
+          <div class="hud-tr">03 / 05</div>
 
-          <!-- Console -->
-          <div class="console-zone" style="top:8%;">
-            <div class="console-screen" onclick="toggleShowreel()">
-              <div class="color-wheels">
-                <div style="text-align:center;">
-                  <div class="wheel"></div>
-                  <div class="wheel-label">LIFT</div>
-                </div>
-                <div style="text-align:center;">
-                  <div class="wheel"></div>
-                  <div class="wheel-label">GAMMA</div>
-                </div>
-                <div style="text-align:center;">
-                  <div class="wheel"></div>
-                  <div class="wheel-label">GAIN</div>
-                </div>
-              </div>
-              <div class="waveform" id="waveform"></div>
-              <div class="timeline-mock">
-                <div class="tl-bar" style="width:25%;"></div>
-                <div class="tl-bar" style="width:15%;opacity:.3;"></div>
-                <div class="tl-bar" style="width:35%;"></div>
-                <div class="tl-bar" style="width:10%;opacity:.2;"></div>
-                <div class="tl-bar" style="width:20%;"></div>
-              </div>
-              <div class="console-controls">
-                <div class="ctrl-btn"></div>
-                <div class="ctrl-btn red"></div>
-                <div class="ctrl-btn"></div>
-                <div class="ctrl-btn"></div>
-                <div class="ctrl-btn red"></div>
-              </div>
-              <div class="play-overlay">
-                <div class="play-btn">▶</div>
-              </div>
-              <!-- Showreel popup -->
-              <div class="showreel-popup" id="showreel">
-                <div class="showreel-close" onclick="event.stopPropagation();closeShowreel()">✕</div>
-                <div class="showreel-title">MICRO-SHOWREEL</div>
-                <div class="showreel-text">POST-PRODUCTION VFX</div>
-                <div class="showreel-bar">
-                  <div class="showreel-progress" id="srProgress"></div>
-                </div>
-                <div class="showreel-text" id="srText">Chargement...</div>
-              </div>
+          <div class="fp-visual">
+            <div class="bl-scene">
+              <svg class="bl-mesh" viewBox="0 0 400 220" xmlns="http://www.w3.org/2000/svg" style="position:absolute;inset:0;width:100%;height:100%;">
+                <defs><pattern id="g" x="0" y="0" width="36" height="36" patternUnits="userSpaceOnUse"><path d="M36 0L0 0 0 36" fill="none" stroke="#cd1719" stroke-width=".5"/></pattern></defs>
+                <rect width="100%" height="100%" fill="url(#g)"/>
+                <polygon points="200,8 40,215 360,215" fill="none" stroke="#cd1719" stroke-width=".5" opacity=".5"/>
+                <polygon points="200,30 80,205 320,205" fill="none" stroke="#cd1719" stroke-width=".3" opacity=".25"/>
+              </svg>
+              <div class="bl-orbit"><div class="bl-orbit-dot"></div></div>
+              <svg class="bl-robot" viewBox="0 0 120 150" fill="none" xmlns="http://www.w3.org/2000/svg">
+                <rect x="38" y="14" width="44" height="36" rx="6" fill="rgba(205,23,25,.08)" stroke="#cd1719" stroke-width="1.2"/>
+                <rect x="47" y="22" width="11" height="9" rx="2" fill="rgba(205,23,25,.4)"/>
+                <rect x="62" y="22" width="11" height="9" rx="2" fill="rgba(205,23,25,.4)"/>
+                <rect x="46" y="36" width="28" height="3" rx="1.5" fill="rgba(205,23,25,.3)"/>
+                <rect x="53" y="50" width="14" height="8" rx="2" fill="rgba(255,255,255,.05)" stroke="#cd1719" stroke-width=".8"/>
+                <rect x="26" y="58" width="68" height="46" rx="7" fill="rgba(205,23,25,.06)" stroke="#cd1719" stroke-width="1.2"/>
+                <circle cx="60" cy="81" r="10" fill="none" stroke="#cd1719" stroke-width="1"/>
+                <circle cx="60" cy="81" r="5" fill="rgba(205,23,25,.3)"/>
+                <rect x="8" y="60" width="18" height="7" rx="3" fill="rgba(205,23,25,.08)" stroke="#cd1719" stroke-width=".8"/>
+                <rect x="94" y="60" width="18" height="7" rx="3" fill="rgba(205,23,25,.08)" stroke="#cd1719" stroke-width=".8"/>
+                <rect x="5" y="67" width="10" height="24" rx="3" fill="rgba(205,23,25,.06)" stroke="#cd1719" stroke-width=".8"/>
+                <rect x="105" y="67" width="10" height="24" rx="3" fill="rgba(205,23,25,.06)" stroke="#cd1719" stroke-width=".8"/>
+                <rect x="35" y="104" width="18" height="30" rx="4" fill="rgba(205,23,25,.06)" stroke="#cd1719" stroke-width=".8"/>
+                <rect x="67" y="104" width="18" height="30" rx="4" fill="rgba(205,23,25,.06)" stroke="#cd1719" stroke-width=".8"/>
+                <line x1="26" y1="70" x2="94" y2="70" stroke="rgba(205,23,25,.12)" stroke-width=".5"/>
+                <line x1="26" y1="92" x2="94" y2="92" stroke="rgba(205,23,25,.12)" stroke-width=".5"/>
+              </svg>
             </div>
           </div>
 
-          <div class="p4-content">
-            <div class="formation-badge">Formation</div>
-            <div class="panel-title">DAVINCI RESOLVE<br><em>/ VFX</em></div>
-            <div class="panel-level">POST-PRODUCTION · ÉTALONNAGE · COMPOSITING</div>
-            <div class="skills-grid">
-              <div class="skill-tag">
-                <div class="skill-dot"></div>
-                <div class="skill-name">Étalonnage Cinématographique</div>
-                <div class="skill-arrow">›</div>
-                <div class="tooltip">Maîtrisez la colorimétrie professionnelle. LUTs, Color Science, workflows HDR et Dolby Vision.</div>
+          <div class="fp-content">
+            <div class="fp-badge">
+              <div class="fp-badge-num">F-02</div>
+              <div class="fp-badge-label">Formation</div>
+            </div>
+            <div class="fp-title">EXPERT<br><span class="red">BLENDER</span><br>3D</div>
+            <div class="fp-level">Débutant · Intermédiaire · Pro · Présentiel · Distanciel · Hybride</div>
+            <div class="fp-skills">
+              <div class="fp-skill">
+                <div class="fp-skill-dot"></div>
+                <div class="fp-skill-name">Modélisation Avancée</div>
+                <div class="fp-skill-tag">HARD/ORG</div>
+                <div class="fp-tooltip">Hard surface & organique. Maîtrisez les outils de modélisation polygonale et subdivisionnelle.</div>
               </div>
-              <div class="skill-tag">
-                <div class="skill-dot"></div>
-                <div class="skill-name">Fusion Compositing</div>
-                <div class="skill-arrow">›</div>
-                <div class="tooltip">Compositing nodal avancé. Intégrez des éléments 3D dans vos séquences avec précision.</div>
+              <div class="fp-skill">
+                <div class="fp-skill-dot"></div>
+                <div class="fp-skill-name">Sculpting & Texturing PBR</div>
+                <div class="fp-skill-tag">MATIÈRES</div>
+                <div class="fp-tooltip">Sculptez des formes organiques. Créez des textures PBR photoréalistes avec les pinceaux Blender.</div>
               </div>
-              <div class="skill-tag">
-                <div class="skill-dot"></div>
-                <div class="skill-name">Flux de Travail VFX</div>
-                <div class="skill-arrow">›</div>
-                <div class="tooltip">Pipeline professionnel de bout en bout. De la capture à la livraison finale en DCP ou OTT.</div>
+              <div class="fp-skill">
+                <div class="fp-skill-dot"></div>
+                <div class="fp-skill-name">Cycles & EEVEE Next</div>
+                <div class="fp-skill-tag">RENDU</div>
+                <div class="fp-tooltip">Les deux moteurs de rendu maîtrisés. Cycles photoréaliste et EEVEE temps réel.</div>
+              </div>
+              <div class="fp-skill">
+                <div class="fp-skill-dot"></div>
+                <div class="fp-skill-name">Géométrie Nodes</div>
+                <div class="fp-skill-tag">PROC.</div>
+                <div class="fp-tooltip">Création procédurale avancée. Générez des géométries complexes via nœuds visuels.</div>
               </div>
             </div>
           </div>
         </div>
 
-        <!-- ═══════ PANEL 5 — CTA ═══════ -->
-        <div class="panel">
-          <div class="p5-bg"></div>
+        <!-- ══ PANEL 4 — DAVINCI ══ -->
+        <div class="panel formation-panel">
+          <div class="fp-texture"></div>
+          <div class="fp-bg-letter">D</div>
+          <div class="top-line"></div>
+          <div class="hud-tl"><div class="hud-logo">PXL.IMAGE</div></div>
+          <div class="hud-tr">04 / 05</div>
+
+          <div class="fp-visual">
+            <div class="dv-scene" id="dvScene">
+              <div class="dv-wheels">
+                <div class="dv-wheel-wrap">
+                  <div class="dv-wheel"></div>
+                  <div class="dv-wl">LIFT</div>
+                </div>
+                <div class="dv-wheel-wrap">
+                  <div class="dv-wheel"></div>
+                  <div class="dv-wl">GAMMA</div>
+                </div>
+                <div class="dv-wheel-wrap">
+                  <div class="dv-wheel"></div>
+                  <div class="dv-wl">GAIN</div>
+                </div>
+              </div>
+              <div class="dv-waveform" id="dvWave"></div>
+              <div class="dv-timeline">
+                <div class="dv-tl-seg" style="width:22%"></div>
+                <div class="dv-tl-seg" style="width:14%;opacity:.25"></div>
+                <div class="dv-tl-seg" style="width:30%"></div>
+                <div class="dv-tl-seg" style="width:8%;opacity:.15"></div>
+                <div class="dv-tl-seg" style="width:18%"></div>
+              </div>
+            </div>
+          </div>
+
+          <div class="fp-content">
+            <div class="fp-badge">
+              <div class="fp-badge-num">F-03</div>
+              <div class="fp-badge-label">Formation</div>
+            </div>
+            <div class="fp-title">DAVINCI<br><span class="red">RESOLVE</span><br>/ VFX</div>
+            <div class="fp-level">Débutant · Intermédiaire · Pro · Présentiel · Distanciel · Hybride</div>
+            <div class="fp-skills">
+              <div class="fp-skill">
+                <div class="fp-skill-dot"></div>
+                <div class="fp-skill-name">Étalonnage Cinématographique</div>
+                <div class="fp-skill-tag">COLOR</div>
+                <div class="fp-tooltip">Colorimétrie professionnelle. LUTs, Color Science, workflows HDR et Dolby Vision.</div>
+              </div>
+              <div class="fp-skill">
+                <div class="fp-skill-dot"></div>
+                <div class="fp-skill-name">Fusion Compositing</div>
+                <div class="fp-skill-tag">VFX</div>
+                <div class="fp-tooltip">Compositing nodal avancé. Intégrez des éléments 3D dans vos séquences avec précision.</div>
+              </div>
+              <div class="fp-skill">
+                <div class="fp-skill-dot"></div>
+                <div class="fp-skill-name">Post-production Intense</div>
+                <div class="fp-skill-tag">WORKFLOW</div>
+                <div class="fp-tooltip">Pipeline professionnel de bout en bout. De la capture à la livraison DCP ou OTT.</div>
+              </div>
+            </div>
+          </div>
+        </div>
+
+        <!-- ══ PANEL 5 — CTA ══ -->
+        <div class="panel p5">
           <div class="p5-grid"></div>
-          <div class="pxl-logo"><div class="logo-bar"></div>PXL.IMAGE</div>
-          <div class="panel-num">05 / 05</div>
+          <div class="p5-radial"></div>
+          <div class="p5-ring"><div style="position:absolute;top:-3px;left:50%;transform:translateX(-50%);width:6px;height:6px;border-radius:50%;background:var(--red);box-shadow:0 0 10px var(--red);"></div></div>
+          <div class="p5-ring2"></div>
+          <div class="p5-monogram">PXL</div>
+          <div class="top-line"></div>
+          <div class="hud-tl"><div class="hud-logo">PXL.IMAGE</div></div>
+          <div class="hud-tr">05 / 05</div>
 
           <div class="p5-content">
-            <div class="p5-icon">🎓</div>
-            <div class="p5-title">REJOINS<br>LA LISTE<br><em>D'ATTENTE</em></div>
-            <div class="p5-sub">Sois informé en avant-première du lancement. Formation conçue par une ingénieure pédagogique.</div>
-
+            <div class="p5-overline">Liste d'attente</div>
+            <div class="p5-title">REJOINS<br>LA <span class="red">LISTE</span><br>D'ATTENTE</div>
             <div class="p5-features">
-              <div class="p5-feature">
-                <div class="p5-feat-icon">🧠</div>
-                <div class="p5-feat-text">Sciences cognitives appliquées à l'apprentissage 3D</div>
+              <div class="p5-feat">
+                <div class="p5-feat-ico">🧠</div>
+                <div class="p5-feat-txt">Sciences cognitives × apprentissage 3D</div>
               </div>
-              <div class="p5-feature">
-                <div class="p5-feat-icon">📐</div>
-                <div class="p5-feat-text">Blender · Unreal Engine 5 · DaVinci Resolve</div>
+              <div class="p5-feat">
+                <div class="p5-feat-ico">📐</div>
+                <div class="p5-feat-txt">Blender · Unreal Engine 5 · DaVinci</div>
               </div>
-              <div class="p5-feature">
-                <div class="p5-feat-icon">✅</div>
-                <div class="p5-feat-text">Organisme certifié Qualiopi · Financement possible</div>
+              <div class="p5-feat">
+                <div class="p5-feat-ico">🎓</div>
+                <div class="p5-feat-txt">Débutant · Intermédiaire · Pro — montée en compétences</div>
               </div>
-              <div class="p5-feature">
-                <div class="p5-feat-icon">🎯</div>
-                <div class="p5-feat-text">Tarif de lancement exclusif pour les inscrits</div>
+              <div class="p5-feat">
+                <div class="p5-feat-ico">🏫</div>
+                <div class="p5-feat-txt">Présentiel · Distanciel · Hybride</div>
+              </div>
+              <div class="p5-feat">
+                <div class="p5-feat-ico">✅</div>
+                <div class="p5-feat-txt">Certifié Qualiopi · Financement possible</div>
+              </div>
+              <div class="p5-feat">
+                <div class="p5-feat-ico">🎯</div>
+                <div class="p5-feat-txt">Tarif exclusif lancement pour inscrits</div>
               </div>
             </div>
-
-            <a href="https://4ceaf68c.sibforms.com/serve/MUIFADKKoQKyuyEUSXnayWi0llw5wgaWpBLliV2KpsDkZl7wWBOxtFzbGKdR4cZl_nVm1QbP2wQd7r5xxPeYAT1F8fyjbslEfw1q0GiGo6PrT7A4y9eU-BPK4jlmC2zDFZdulm6PkEuLJWf4RpBoWEa_zTmSLDn_30dhfwvAdz8UguR5pAdol3mH-RcCKy1ZljxPz-GHi48ZrTMwcA==" target="_blank" class="cta-button">
-              👇 Je rejoins la liste d'attente
+            <a href="https://forms.gle/84pvZm89LJRSiBDV8" target="_blank" class="p5-btn">
+              REJOINDRE →
             </a>
-            <div class="p5-legal">Gratuit · Sans engagement · 0 spam · RGPD conforme</div>
+            <div class="p5-legal">GRATUIT · SANS ENGAGEMENT · RGPD · 0 SPAM</div>
           </div>
         </div>
 
-      </div><!-- end panels-track -->
+      </div><!-- /track -->
 
-      <!-- PROGRESS BAR -->
-      <div class="progress-bar" id="progressBar">
-        <div class="progress-segment active" onclick="goTo(0)"></div>
-        <div class="progress-segment" onclick="goTo(1)"></div>
-        <div class="progress-segment" onclick="goTo(2)"></div>
-        <div class="progress-segment" onclick="goTo(3)"></div>
-        <div class="progress-segment" onclick="goTo(4)"></div>
+      <!-- PROGRESS -->
+      <div class="progress" id="prog">
+        <div class="prog-seg active" onclick="go(0)"></div>
+        <div class="prog-seg" onclick="go(1)"></div>
+        <div class="prog-seg" onclick="go(2)"></div>
+        <div class="prog-seg" onclick="go(3)"></div>
+        <div class="prog-seg" onclick="go(4)"></div>
       </div>
 
-      <div class="swipe-hint">← Swipe →</div>
+      <div class="swipe-hint">← SWIPE →</div>
 
-    </div><!-- end device -->
+    </div><!-- /device -->
 
     <!-- SIDE DOTS -->
-    <div class="side-dots" id="sideDots">
-      <div class="side-dot active" onclick="goTo(0)"></div>
-      <div class="side-dot" onclick="goTo(1)"></div>
-      <div class="side-dot" onclick="goTo(2)"></div>
-      <div class="side-dot" onclick="goTo(3)"></div>
-      <div class="side-dot" onclick="goTo(4)"></div>
+    <div class="side-panel" style="position:absolute;right:-20px;top:50%;transform:translateY(-50%);">
+      <div class="side-dot active" onclick="go(0)"></div>
+      <div class="side-dot" onclick="go(1)"></div>
+      <div class="side-dot" onclick="go(2)"></div>
+      <div class="side-dot" onclick="go(3)"></div>
+      <div class="side-dot" onclick="go(4)"></div>
     </div>
   </div>
 </div>
 
 <script>
-// CURSOR
-const cursor = document.getElementById('cursor');
-document.addEventListener('mousemove', e => {
-  cursor.style.left = e.clientX + 'px';
-  cursor.style.top = e.clientY + 'px';
-});
-document.querySelectorAll('a, button, .skill-tag, .nav-arrow, .side-dot, .progress-segment, .console-screen, .cta-button').forEach(el => {
-  el.addEventListener('mouseenter', () => cursor.classList.add('hover'));
-  el.addEventListener('mouseleave', () => cursor.classList.remove('hover'));
-});
-
-// PANEL NAVIGATION
-let current = 0;
-const total = 5;
-const track = document.getElementById('track');
-const segments = document.querySelectorAll('.progress-segment');
-const dots = document.querySelectorAll('.side-dot');
-const navPrev = document.getElementById('navPrev');
-const navNext = document.getElementById('navNext');
-
-function goTo(idx) {
-  current = Math.max(0, Math.min(total-1, idx));
-  const w = document.querySelector('.device').offsetWidth;
-  track.style.transform = `translateX(-${current * w}px)`;
-
-  segments.forEach((s, i) => {
-    s.classList.toggle('active', i === current);
-    s.classList.toggle('done', i < current);
-  });
-  dots.forEach((d, i) => d.classList.toggle('active', i === current));
-  navPrev.classList.toggle('hidden', current === 0);
-  navNext.classList.toggle('hidden', current === total-1);
+// ─── CURSOR ───
+const cur = document.getElementById('cur');
+const ring = document.getElementById('cur-ring');
+let mx = 0, my = 0, rx = 0, ry = 0;
+document.addEventListener('mousemove', e => { mx = e.clientX; my = e.clientY; });
+function animCursor() {
+  cur.style.left = mx + 'px'; cur.style.top = my + 'px';
+  rx += (mx - rx) * .12; ry += (my - ry) * .12;
+  ring.style.left = rx + 'px'; ring.style.top = ry + 'px';
+  requestAnimationFrame(animCursor);
 }
-
-function nextPanel() { goTo(current + 1); }
-function prevPanel() { goTo(current - 1); }
-
-// KEYBOARD
-document.addEventListener('keydown', e => {
-  if (e.key === 'ArrowRight') nextPanel();
-  if (e.key === 'ArrowLeft') prevPanel();
+animCursor();
+document.querySelectorAll('a,.fp-skill,.nav-btn,.side-dot,.prog-seg,.p5-btn,.dv-wheel').forEach(el => {
+  el.addEventListener('mouseenter', () => document.body.classList.add('hovering'));
+  el.addEventListener('mouseleave', () => document.body.classList.remove('hovering'));
 });
 
-// TOUCH SWIPE
-let startX = 0;
-const device = document.getElementById('device');
-device.addEventListener('touchstart', e => { startX = e.touches[0].clientX; }, {passive:true});
-device.addEventListener('touchend', e => {
-  const dx = e.changedTouches[0].clientX - startX;
-  if (Math.abs(dx) > 50) dx < 0 ? nextPanel() : prevPanel();
+// ─── NAVIGATION ───
+let cur_panel = 0;
+const TOTAL = 5;
+const track = document.getElementById('track');
+const segs = document.querySelectorAll('.prog-seg');
+const dots = document.querySelectorAll('.side-dot');
+const navP = document.getElementById('navP');
+const navN = document.getElementById('navN');
+
+function go(idx) {
+  cur_panel = Math.max(0, Math.min(TOTAL-1, idx));
+  const w = document.querySelector('.device').offsetWidth;
+  track.style.transform = `translateX(-${cur_panel * w}px)`;
+  segs.forEach((s,i) => {
+    s.classList.toggle('active', i === cur_panel);
+    s.classList.toggle('done', i < cur_panel);
+  });
+  dots.forEach((d,i) => d.classList.toggle('active', i === cur_panel));
+  navP.classList.toggle('hidden', cur_panel === 0);
+  navN.classList.toggle('hidden', cur_panel === TOTAL-1);
+}
+function next() { go(cur_panel+1); }
+function prev() { go(cur_panel-1); }
+
+// Keyboard
+document.addEventListener('keydown', e => {
+  if (e.key === 'ArrowRight') next();
+  if (e.key === 'ArrowLeft') prev();
+});
+
+// Touch
+let tx = 0;
+const dev = document.getElementById('device');
+dev.addEventListener('touchstart', e => tx = e.touches[0].clientX, {passive:true});
+dev.addEventListener('touchend', e => {
+  const dx = e.changedTouches[0].clientX - tx;
+  if (Math.abs(dx) > 40) dx < 0 ? next() : prev();
 }, {passive:true});
 
-// WAVEFORM
-const wf = document.getElementById('waveform');
-for (let i = 0; i < 60; i++) {
-  const bar = document.createElement('div');
-  bar.className = 'wave-bar';
-  const h = Math.random() * 28 + 4;
-  bar.style.height = h + 'px';
-  bar.style.opacity = (0.3 + Math.random() * 0.7).toFixed(2);
-  wf.appendChild(bar);
+// ─── UE VLINES ───
+const ueVl = document.getElementById('ueVlines');
+[20,32,44,56,68,80].forEach(pct => {
+  const l = document.createElement('div');
+  l.className = 'ue-vl';
+  const h = 50 + Math.random() * 40;
+  l.style.cssText = `height:${h}%;width:1px;`;
+  ueVl.appendChild(l);
+});
+
+// ─── DV WAVEFORM ───
+const dvW = document.getElementById('dvWave');
+for (let i = 0; i < 64; i++) {
+  const b = document.createElement('div');
+  b.className = 'dv-bar';
+  b.style.height = (4 + Math.random() * 24) + 'px';
+  b.style.opacity = (.2 + Math.random() * .8).toFixed(2);
+  dvW.appendChild(b);
 }
 
-// SHOWREEL
-let srTimer = null;
-function toggleShowreel() {
-  const popup = document.getElementById('showreel');
-  if (popup.classList.contains('show')) { closeShowreel(); return; }
-  popup.classList.add('show');
-  const prog = document.getElementById('srProgress');
-  const txt = document.getElementById('srText');
-  prog.style.width = '0%';
-  txt.textContent = 'Étalonnage cinématographique...';
-  setTimeout(() => { prog.style.width = '100%'; }, 100);
-  let msgs = ['Étalonnage cinématographique...','Fusion Compositing VFX...','Post-production intensive...'];
-  let mi = 0;
-  srTimer = setInterval(() => {
-    mi = (mi+1) % msgs.length;
-    txt.textContent = msgs[mi];
-  }, 1000);
-  setTimeout(() => closeShowreel(), 3200);
-}
-function closeShowreel() {
-  document.getElementById('showreel').classList.remove('show');
-  clearInterval(srTimer);
-  const prog = document.getElementById('srProgress');
-  prog.style.transition = 'none';
-  prog.style.width = '0%';
-  setTimeout(() => { prog.style.transition = 'width 3s linear'; }, 50);
-}
-
-// INIT
-goTo(0);
+// ─── INIT ───
+go(0);
 </script>
 </body>
 </html>
